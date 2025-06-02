@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="form-header">
+            <div class="logo-section">
+                <% if (typeof usuario !== 'undefined' && usuario) { %>
+                    <h1><i class="fas fa-warehouse"></i> Registro de Finca</h1>
+                    <p>Bienvenido <%= usuario.nombre || 'Usuario' %>, complete los datos de su finca</p>
+                <% } else { %>
+                    <h1><i class="fas fa-warehouse"></i> Registro de Finca</h1>
+                    <p>Complete los datos de su finca para finalizar el registro</p>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Progreso del registro -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <span>Datos Personales</span>
+                </div>
+                <div class="progress-step active">
+                    <div class="step-number">2</div>
+                    <span>Registro de Finca</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario principal -->
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-warehouse"></i> Información de la Finca</h2>
+                    <p>Proporcione los datos de su finca o granja</p>
+                </div>
+
+                <!-- Mostrar mensajes -->
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <%= error.texto || error %>
+                    </div>
+                <% } %>
+
+                <% if (typeof success !== 'undefined' && success) { %>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <%= success.texto || success %>
+                    </div>
+                <% } %>
+
+                <form action="/fincas/registro" method="POST" enctype="multipart/form-data" class="registro-form" id="fincaForm">
+                    <div class="card-body">
+                        <!-- Información básica de la finca -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
+                            
+                            <div class="form-group">
+                                <label for="nombre_finca">
+                                    <i class="fas fa-warehouse"></i>
+                                    Nombre de la Finca/Granja *
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="nombre_finca" 
+                                    name="nombre_finca" 
+                                    class="form-control"
+                                    value="<%= typeof formData !== 'undefined' ? formData.nombre_finca || '' : '' %>"
+                                    required
+                                    placeholder="Ej: Hacienda La Esperanza, Granja San José..."
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="direccion_finca">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Dirección de la Finca
+                                </label>
+                                <textarea 
+                                    id="direccion_finca" 
+                                    name="direccion_finca" 
+                                    class="form-control"
+                                    rows="3"
+                                    placeholder="Ingrese la dirección completa de la finca"
+                                ><%= typeof formData !== 'undefined' ? formData.direccion_finca || '' : '' %></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Coordenadas geográficas -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-map-pin"></i> Coordenadas Geográficas</h3>
+                            <p class="section-description">
+                                <i class="fas fa-info-circle"></i>
+                                Las coordenadas ayudan a localizar exactamente su finca. Puede obtenerlas desde Google Maps.
+                            </p>
+                            
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="latitud">
+                                            <i class="fas fa-compass"></i>
+                                            Latitud
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            id="latitud" 
+                                            name="latitud" 
+                                            class="form-control"
+                                            step="0.000001"
+                                            min="-90"
+                                            max="90"
+                                            value="<%= typeof formData !== 'undefined' ? formData.latitud || '' : '' %>"
+                                            placeholder="Ej: 10.123456"
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="longitud">
+                                            <i class="fas fa-compass"></i>
+                                            Longitud
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            id="longitud" 
+                                            name="longitud" 
+                                            class="form-control"
+                                            step="0.000001"
+                                            min="-180"
+                                            max="180"
+                                            value="<%= typeof formData !== 'undefined' ? formData.longitud || '' : '' %>"
+                                            placeholder="Ej: -66.123456"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="coordinates-helper">
+                                <button type="button" class="btn btn-info btn-sm" onclick="getCurrentLocation()">
+                                    <i class="fas fa-location-arrow"></i>
+                                    Usar Mi Ubicación Actual
+                                </button>
+                                <a href="https://www.google.com/maps" target="_blank" class="btn btn-outline btn-sm">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    Abrir Google Maps
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Ubicación administrativa -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-map"></i> Ubicación Administrativa</h3>
+                            
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="estado_id">
+                                            <i class="fas fa-map"></i>
+                                            Estado *
+                                        </label>
+                                        <select id="estado_id" name="estado_id" class="form-control" required>
+                                            <option value="">Seleccionar estado...</option>
+                                            <% if (typeof estados !== 'undefined' && estados) { %>
+                                                <% estados.forEach(estado => { %>
+                                                    <option value="<%= estado.id %>" 
+                                                        <%= typeof formData !== 'undefined' && formData.estado_id == estado.id ? 'selected' : '' %>>
+                                                        <%= estado.nombre %>
+                                                    </option>
+                                                <% }) %>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="ciudad_id">
+                                            <i class="fas fa-city"></i>
+                                            Ciudad
+                                        </label>
+                                        <select id="ciudad_id" name="ciudad_id" class="form-control">
+                                            <option value="">Seleccionar ciudad...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="municipio_id">
+                                            <i class="fas fa-building"></i>
+                                            Municipio
+                                        </label>
+                                        <select id="municipio_id" name="municipio_id" class="form-control">
+                                            <option value="">Seleccionar municipio...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="parroquia_id">
+                                            <i class="fas fa-church"></i>
+                                            Parroquia
+                                        </label>
+                                        <select id="parroquia_id" name="parroquia_id" class="form-control">
+                                            <option value="">Seleccionar parroquia...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logo de la finca -->
+                        <div class="form-section">
+                            <h3><i class="fas fa-image"></i> Logo de la Finca</h3>
+                            
+                            <div class="form-group">
+                                <label for="logo_finca">
+                                    <i class="fas fa-upload"></i>
+                                    Logo o Imagen Representativa
+                                </label>
+                                <div class="file-upload-container">
+                                    <input 
+                                        type="file" 
+                                        id="logo_finca" 
+                                        name="logo_finca" 
+                                        accept="image/*"
+                                        class="file-input"
+                                    >
+                                    <label for="logo_finca" class="file-label">
+                                        <i class="fas fa-upload"></i>
+                                        Seleccionar logo
+                                    </label>
+                                    <div class="file-info">
+                                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                                    </div>
+                                    <div class="image-preview" id="logo-preview"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="form-actions">
+                            <a href="/usuarios/registro" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Volver a Datos Personales
+                            </a>
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-check"></i>
+                                Finalizar Registro
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <h4>Datos Seguros</h4>
+                        <p>Su información está protegida y será utilizada únicamente para el registro ganadero.</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div class="info-content">
+                        <h4>Carnet Digital</h4>
+                        <p>Una vez completado el registro, podrá generar su carnet ganadero digital.</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-icon">
+                        <i class="fas fa-plus-circle"></i>
+                    </div>
+                    <div class="info-content">
+                        <h4>Múltiples Fincas</h4>
+                        <p>Podrá agregar más fincas posteriormente desde su panel de usuario.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/ubicaciones.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setupImagePreview();
+            setupLocationServices();
+        });
+
+        // Preview de logo
+        function setupImagePreview() {
+            document.getElementById('logo_finca').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('logo-preview');
+                
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.innerHTML = `
+                            <div class="logo-preview-container">
+                                <img src="${e.target.result}" alt="Vista previa del logo" class="logo-preview-img">
+                                <div class="logo-info">
+                                    <p><strong>Archivo:</strong> ${file.name}</p>
+                                    <p><strong>Tamaño:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+
+        // Obtener ubicación actual
+        function getCurrentLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        document.getElementById('latitud').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('longitud').value = position.coords.longitude.toFixed(6);
+                        
+                        showNotification('Ubicación obtenida exitosamente', 'success');
+                    },
+                    function(error) {
+                        let message = 'No se pudo obtener la ubicación';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = 'Acceso a la ubicación denegado por el usuario';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = 'Información de ubicación no disponible';
+                                break;
+                            case error.TIMEOUT:
+                                message = 'Tiempo de espera agotado para obtener la ubicación';
+                                break;
+                        }
+                        showNotification(message, 'error');
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                    }
+                );
+            } else {
+                showNotification('La geolocalización no está soportada en este navegador', 'error');
+            }
+        }
+
+        // Servicios de ubicación
+        function setupLocationServices() {
+            // Cargar ciudades cuando se selecciona un estado
+            document.getElementById('estado_id').addEventListener('change', function() {
+                const estadoId = this.value;
+                const ciudadSelect = document.getElementById('ciudad_id');
+                const municipioSelect = document.getElementById('municipio_id');
+                const parroquiaSelect = document.getElementById('parroquia_id');
+                
+                // Limpiar selectores dependientes
+                ciudadSelect.innerHTML = '<option value="">Seleccionar ciudad...</option>';
+                municipioSelect.innerHTML = '<option value="">Seleccionar municipio...</option>';
+                parroquiaSelect.innerHTML = '<option value="">Seleccionar parroquia...</option>';
+                
+                if (estadoId) {
+                    loadUbicaciones('ciudades', estadoId, ciudadSelect);
+                }
+            });
+
+            // Cargar municipios cuando se selecciona una ciudad
+            document.getElementById('ciudad_id').addEventListener('change', function() {
+                const ciudadId = this.value;
+                const municipioSelect = document.getElementById('municipio_id');
+                const parroquiaSelect = document.getElementById('parroquia_id');
+                
+                municipioSelect.innerHTML = '<option value="">Seleccionar municipio...</option>';
+                parroquiaSelect.innerHTML = '<option value="">Seleccionar parroquia...</option>';
+                
+                if (ciudadId) {
+                    loadUbicaciones('municipios', ciudadId, municipioSelect);
+                }
+            });
+
+            // Cargar parroquias cuando se selecciona un municipio
+            document.getElementById('municipio_id').addEventListener('change', function() {
+                const municipioId = this.value;
+                const parroquiaSelect = document.getElementById('parroquia_id');
+                
+                parroquiaSelect.innerHTML = '<option value="">Seleccionar parroquia...</option>';
+                
+                if (municipioId) {
+                    loadUbicaciones('parroquias', municipioId, parroquiaSelect);
+                }
+            });
+        }
+
+        // Cargar ubicaciones
+        async function loadUbicaciones(tipo, parentId, selectElement) {
+            try {
+                selectElement.innerHTML = '<option value="">Cargando...</option>';
+                
+                const response = await fetch(`/usuarios/ubicaciones/${tipo}/${parentId}`);
+                const data = await response.json();
+                
+                selectElement.innerHTML = `<option value="">Seleccionar ${tipo.slice(0, -1)}...</option>`;
+                
+                if (data.success) {
+                    const ubicaciones = data[tipo] || [];
+                    ubicaciones.forEach(ubicacion => {
+                        const option = document.createElement('option');
+                        option.value = ubicacion.id;
+                        option.textContent = ubicacion.nombre;
+                        selectElement.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error(`Error cargando ${tipo}:`, error);
+                selectElement.innerHTML = `<option value="">Error cargando ${tipo}</option>`;
+            }
+        }
+
+        // Mostrar notificaciones
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Validación de coordenadas
+        document.getElementById('latitud').addEventListener('input', function() {
+            validateCoordinate(this, 'latitud');
+        });
+
+        document.getElementById('longitud').addEventListener('input', function() {
+            validateCoordinate(this, 'longitud');
+        });
+
+        function validateCoordinate(input, type) {
+            const value = parseFloat(input.value);
+            const isLatitud = type === 'latitud';
+            const min = isLatitud ? -90 : -180;
+            const max = isLatitud ? 90 : 180;
+            
+            if (value < min || value > max) {
+                input.setCustomValidity(`${type} debe estar entre ${min} y ${max}`);
+            } else {
+                input.setCustomValidity('');
+            }
+        }
+
+        // Envío del formulario
+        document.getElementById('fincaForm').addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando registro...';
+            submitBtn.disabled = true;
+        });
+
+        // Validación adicional antes del envío
+        document.getElementById('fincaForm').addEventListener('submit', function(e) {
+            const nombreFinca = document.getElementById('nombre_finca').value.trim();
+            const estado = document.getElementById('estado_id').value;
+            
+            if (!nombreFinca) {
+                e.preventDefault();
+                showNotification('El nombre de la finca es obligatorio', 'error');
+                document.getElementById('nombre_finca').focus();
+                return false;
+            }
+            
+            if (!estado) {
+                e.preventDefault();
+                showNotification('Debe seleccionar un estado', 'error');
+                document.getElementById('estado_id').focus();
+                return false;
+            }
+        });
+
+        // Auto-resize para textarea
+        document.getElementById('direccion_finca').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    </script>
+
+    <style>
+        .logo-preview-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light-cream);
+            border-radius: 8px;
+        }
+
+        .logo-preview-img {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .coordinates-helper {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .section-description {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--light-cream);
+            border-radius: 6px;
+            border-left: 3px solid var(--info);
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .info-icon {
+            background: linear-gradient(135deg, var(--primary-green), var(--accent-green));
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .info-content h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary-green);
+            font-size: 1rem;
+        }
+
+        .info-content p {
+            margin: 0;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background: var(--success);
+        }
+
+        .notification-error {
+            background: var(--error);
+        }
+
+        .notification-info {
+            background: var(--info);
+        }
+
+        @media (max-width: 768px) {
+            .coordinates-helper {
+                flex-direction: column;
+            }
+            
+            .info-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</body>
+</html>

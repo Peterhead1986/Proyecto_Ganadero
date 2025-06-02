@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="login-body">
+    <div class="login-container">
+        <!-- Header con logo del sistema -->
+        <div class="login-header">
+            <div class="logo-container">
+                <i class="fas fa-cow"></i>
+                <h1>Sistema Ganadero Venezolano</h1>
+            </div>
+        </div>
+
+        <!-- Menú superior -->
+        <nav class="login-nav">
+            <a href="/auth/fincas" class="nav-btn">
+                <i class="fas fa-map-marked-alt"></i>
+                Ver Fincas Registradas
+            </a>
+            <a href="/usuarios/registro" class="nav-btn">
+                <i class="fas fa-user-plus"></i>
+                Registrar Datos
+            </a>
+        </nav>
+
+        <!-- Formulario de login -->
+        <div class="login-card">
+            <div class="card-header">
+                <h2><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h2>
+                <p>Ingrese sus credenciales para acceder al sistema</p>
+            </div>
+
+            <!-- Mostrar mensajes -->
+            <% if (typeof mensaje !== 'undefined' && mensaje) { %>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <%= mensaje %>
+                </div>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <%= error.texto || error %>
+                </div>
+            <% } %>
+
+            <form action="/auth/login" method="POST" class="login-form">
+                <div class="form-group">
+                    <label for="nombre_usuario">
+                        <i class="fas fa-user"></i>
+                        Nombre de Usuario
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nombre_usuario" 
+                        name="nombre_usuario" 
+                        value="<%= typeof formData !== 'undefined' ? formData.nombre_usuario || '' : '' %>"
+                        required
+                        autocomplete="username"
+                        placeholder="Ingrese su nombre de usuario"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i>
+                        Contraseña
+                    </label>
+                    <div class="password-container">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            autocomplete="current-password"
+                            placeholder="Ingrese su contraseña"
+                        >
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="password-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <!-- Botones adicionales -->
+            <div class="additional-actions">
+                <button type="button" class="btn-secondary" onclick="showChangePasswordModal()">
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p>&copy; 2024 Sistema Ganadero Venezolano. Todos los derechos reservados.</p>
+            <p>
+                <i class="fas fa-leaf"></i>
+                Desarrollado para el sector agropecuario de Venezuela
+                <i class="fas fa-leaf"></i>
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal para cambio de contraseña -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Cambiar Contraseña</h3>
+                <span class="close" onclick="closeChangePasswordModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Para cambiar su contraseña, primero debe iniciar sesión con sus credenciales actuales.</p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-primary" onclick="closeChangePasswordModal()">
+                        <i class="fas fa-check"></i>
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para mostrar/ocultar contraseña
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('password-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.className = 'fas fa-eye';
+            }
+        }
+
+        // Función para mostrar modal de cambio de contraseña
+        function showChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'block';
+        }
+
+        // Función para cerrar modal de cambio de contraseña
+        function closeChangePasswordModal() {
+            document.getElementById('changePasswordModal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('changePasswordModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Enfocar en el campo de usuario al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('nombre_usuario').focus();
+        });
+
+        // Animación de carga para el formulario
+        document.querySelector('.login-form').addEventListener('submit', function() {
+            const submitBtn = document.querySelector('.btn-login');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
+            submitBtn.disabled = true;
+        });
+
+        // Efecto de escritura para el título
+        document.addEventListener('DOMContentLoaded', function() {
+            const title = document.querySelector('.logo-container h1');
+            const text = title.textContent;
+            title.textContent = '';
+            let i = 0;
+            
+            function typeWriter() {
+                if (i < text.length) {
+                    title.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 100);
+                }
+            }
+            
+            setTimeout(typeWriter, 500);
+        });
+    </script>
+</body>
+</html>

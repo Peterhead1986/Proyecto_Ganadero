@@ -1,0 +1,762 @@
+/* public/css/forms.css - Estilos específicos para formularios */
+
+/* Header de formularios */
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    color: white;
+    border-radius: 15px;
+    box-shadow: var(--shadow-lg);
+}
+
+.logo-section h1 {
+    color: white;
+    margin-bottom: 0.5rem;
+    font-size: 2.2rem;
+}
+
+.logo-section p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: var(--transition-fast);
+}
+
+.back-link:hover {
+    color: white;
+    text-decoration: none;
+}
+
+/* Barra de progreso */
+.progress-container {
+    margin-bottom: 2rem;
+}
+
+.progress-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray);
+    transition: var(--transition);
+}
+
+.progress-step.active {
+    color: var(--primary-green);
+}
+
+.progress-step.completed {
+    color: var(--success);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--light-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    border: 2px solid var(--light-gray);
+    transition: var(--transition);
+}
+
+.progress-step.active .step-number {
+    background: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+}
+
+.progress-step.completed .step-number {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
+.progress-step span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Contenedor principal del formulario */
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Secciones del formulario */
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(45, 80, 22, 0.02);
+    border-radius: 12px;
+    border-left: 4px solid var(--accent-green);
+}
+
+.form-section h3 {
+    color: var(--primary-green);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section h3 i {
+    color: var(--accent-green);
+}
+
+/* Campos de formulario mejorados */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-green);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.form-group label i {
+    color: var(--accent-green);
+    width: 16px;
+    text-align: center;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    font-family: inherit;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 4px rgba(124, 179, 66, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-control:invalid {
+    border-color: var(--error);
+}
+
+.form-control::placeholder {
+    color: var(--gray);
+    opacity: 0.7;
+}
+
+/* Selectores mejorados */
+select.form-control {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+
+select.form-control:focus {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%237cb342' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+}
+
+/* Contenedores de contraseña */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.3s ease;
+    z-index: 2;
+}
+
+.password-toggle:hover {
+    color: var(--primary-green);
+}
+
+/* Medidor de fuerza de contraseña */
+.password-strength {
+    margin-top: 0.5rem;
+}
+
+.strength-meter {
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.strength-bar {
+    height: 100%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.strength-bar.strength-weak {
+    width: 33%;
+    background: var(--error);
+}
+
+.strength-bar.strength-medium {
+    width: 66%;
+    background: var(--warning);
+}
+
+.strength-bar.strength-strong {
+    width: 100%;
+    background: var(--success);
+}
+
+.strength-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Upload de archivos */
+.file-upload-container {
+    border: 2px dashed #e0e0e0;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.file-upload-container:hover {
+    border-color: var(--accent-green);
+    background: rgba(124, 179, 66, 0.05);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-green), var(--accent-green));
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.file-label:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.file-info {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--gray);
+}
+
+.image-preview {
+    margin-top: 1rem;
+}
+
+.image-preview img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Mensajes de validación */
+.validation-message {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.validation-message .success {
+    color: var(--success);
+}
+
+.validation-message .error {
+    color: var(--error);
+}
+
+.validation-message .warning {
+    color: var(--warning);
+}
+
+/* Acciones del formulario */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.card-footer .form-actions {
+    margin: 0;
+}
+
+/* Campos requeridos */
+.form-group label:has(+ input[required]),
+.form-group label:has(+ select[required]),
+.form-group label:has(+ textarea[required]) {
+    position: relative;
+}
+
+.form-group label:has(+ input[required])::after,
+.form-group label:has(+ select[required])::after,
+.form-group label:has(+ textarea[required])::after {
+    content: '*';
+    color: var(--error);
+    margin-left: 0.25rem;
+    font-weight: bold;
+}
+
+/* Estados de campos */
+.form-control.is-valid {
+    border-color: var(--success);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2327ae60' d='m2.3 6.73.4.4 3.5-3.5-.4-.4L3 5.7 1.3 4z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control.is-invalid {
+    border-color: var(--error);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23e74c3c' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m6 3v3m0 1v.01'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+/* Grupos de campos inline */
+.form-inline {
+    display: flex;
+    align-items: end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.form-inline .form-group {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Tooltips para campos */
+.form-tooltip {
+    position: relative;
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: var(--info);
+    cursor: help;
+}
+
+.form-tooltip::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark-gray);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.form-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--dark-gray);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.form-tooltip:hover::before,
+.form-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive Design para formularios */
+@media (max-width: 768px) {
+    .form-header {
+        margin-bottom: 1.5rem;
+        padding: 1.5rem 1rem;
+    }
+    
+    .logo-section h1 {
+        font-size: 1.8rem;
+    }
+    
+    .progress-bar {
+        gap: 1rem;
+    }
+    
+    .progress-step span {
+        font-size: 0.8rem;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .form-section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-inline {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-inline .form-group {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        padding: 0;
+    }
+    
+    .card {
+        border-radius: 8px;
+        margin: 0 0.5rem;
+    }
+    
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: 1rem;
+    }
+    
+    .file-upload-container {
+        padding: 1rem;
+    }
+    
+    .row {
+        margin: 0 -5px;
+    }
+    
+    .col {
+        padding: 0 5px;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animaciones para formularios */
+@keyframes formSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-container .card {
+    animation: formSlideIn 0.5s ease-out;
+}
+
+.form-section {
+    animation: formSlideIn 0.5s ease-out;
+}
+
+/* Efectos de hover y focus mejorados */
+.form-control:hover {
+    border-color: var(--light-green);
+}
+
+.form-control:focus:hover {
+    border-color: var(--accent-green);
+}
+
+/* Estilos para campos deshabilitados */
+.form-control:disabled {
+    background-color: var(--light-gray);
+    color: var(--gray);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Indicadores de carga */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--light-gray);
+    border-top: 4px solid var(--accent-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estilos específicos para diferentes tipos de input */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+    cursor: pointer;
+}
+
+/* Checkbox y radio buttons personalizados */
+.custom-checkbox,
+.custom-radio {
+    position: relative;
+    padding-left: 2rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.custom-checkbox input,
+.custom-radio input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkmark,
+.radiomark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    transition: var(--transition);
+}
+
+.checkmark {
+    border-radius: 4px;
+}
+
+.radiomark {
+    border-radius: 50%;
+}
+
+.custom-checkbox:hover input ~ .checkmark,
+.custom-radio:hover input ~ .radiomark {
+    border-color: var(--accent-green);
+}
+
+.custom-checkbox input:checked ~ .checkmark,
+.custom-radio input:checked ~ .radiomark {
+    background-color: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.checkmark:after,
+.radiomark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+    display: block;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.custom-radio input:checked ~ .radiomark:after {
+    display: block;
+    top: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+}
+
+/* Switch toggle */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: var(--transition);
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: var(--transition);
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--accent-green);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Estilos para rangos/sliders */
+.range-container {
+    margin: 1rem 0;
+}
+
+.range-input {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e0e0e0;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+}
+
+.range-input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    cursor: pointer;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--gray);
+}

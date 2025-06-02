@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title || 'Error' %></title>
+    <link rel="stylesheet" href="/css/dasboard.css">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f8d7da; color: #721c24; }
+        .error-container { max-width: 500px; margin: 60px auto; background: #fff; border: 1px solid #f5c6cb; border-radius: 8px; padding: 32px; box-shadow: 0 2px 8px #0001; }
+        h1 { color: #c82333; }
+        .details { margin-top: 16px; font-size: 0.95em; color: #856404; }
+        a { color: #0056b3; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1><%= title || 'Error' %></h1>
+        <p><%= message || 'Ha ocurrido un error inesperado.' %></p>
+        <% if (error && error.status) { %>
+            <div class="details">Código de error: <%= error.status %></div>
+        <% } %>
+        <% if (error && error.stack && process.env.NODE_ENV === 'development') { %>
+            <pre class="details"><%= error.stack %></pre>
+        <% } %>
+        <a href="/">Volver al inicio</a>
+    </div>
+</body>
+</html>

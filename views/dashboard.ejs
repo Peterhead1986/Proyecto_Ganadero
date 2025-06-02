@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header de navegación -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <i class="fas fa-cow"></i>
+                Sistema Ganadero Venezolano
+            </div>
+            <ul class="navbar-nav">
+                <li><a href="/auth/dashboard"><i class="fas fa-home"></i> Inicio</a></li>
+                <li><a href="/fincas/mis-fincas"><i class="fas fa-warehouse"></i> Mis Fincas</a></li>
+                <li><a href="/auth/fincas"><i class="fas fa-map-marked-alt"></i> Ver Todas las Fincas</a></li>
+                <li><a href="/auth/perfil"><i class="fas fa-user"></i> Mi Perfil</a></li>
+                <li><a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="dashboard-container">
+        <div class="container">
+            <!-- Header de bienvenida -->
+            <div class="welcome-section">
+                <div class="welcome-content">
+                    <div class="welcome-text">
+                        <h1>¡Bienvenido, <%= usuario.nombre %> <%= usuario.apellido %>!</h1>
+                        <p>Panel de control del Sistema Ganadero Venezolano</p>
+                        <div class="user-info">
+                            <span class="user-badge">
+                                <i class="fas fa-id-card"></i>
+                                <%= usuario.tipo_documento === 'cedula' ? 'CI:' : 'RIF:' %> <%= usuario.numero_documento %>
+                            </span>
+                            <span class="user-badge">
+                                <i class="fas fa-envelope"></i>
+                                <%= usuario.correo %>
+                            </span>
+                            <% if (usuario.estado_nombre) { %>
+                                <span class="user-badge">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <%= usuario.estado_nombre %>
+                                </span>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div class="welcome-avatar">
+                        <% if (usuario.foto_perfil) { %>
+                            <img src="/uploads/profiles/<%= usuario.foto_perfil %>" alt="Foto de perfil" class="avatar-img">
+                        <% } else { %>
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mostrar mensajes -->
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <%= success.texto || success %>
+                </div>
+            <% } %>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <%= error.texto || error %>
+                </div>
+            <% } %>
+
+            <!-- Estadísticas rápidas -->
+            <div class="stats-section">
+                <div class="row">
+                    <div class="col-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-warehouse"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number"><%= fincas.length %></div>
+                                <div class="stat-label">Fincas Registradas</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">
+                                    <%= new Date().toLocaleDateString('es-VE') %>
+                                </div>
+                                <div class="stat-label">Último Acceso</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">Activo</div>
+                                <div class="stat-label">Estado del Registro</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-3">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-number">100%</div>
+                                <div class="stat-label">Perfil Completo</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones principales -->
+            <div class="actions-section">
+                <h2><i class="fas fa-bolt"></i> Acciones Rápidas</h2>
+                <div class="action-cards">
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Agregar Nueva Finca</h3>
+                            <p>Registre una nueva finca en el sistema</p>
+                            <a href="/fincas/nueva" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                Agregar Finca
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Generar Carnet</h3>
+                            <p>Descargue su carnet ganadero digital</p>
+                            <% if (fincas.length > 0) { %>
+                                <a href="/auth/carnet" class="btn btn-success">
+                                    <i class="fas fa-download"></i>
+                                    Generar Carnet
+                                </a>
+                            <% } else { %>
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="fas fa-info-circle"></i>
+                                    Registre una finca primero
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Actualizar Perfil</h3>
+                            <p>Modifique sus datos personales</p>
+                            <a href="/auth/perfil" class="btn btn-info">
+                                <i class="fas fa-user-edit"></i>
+                                Editar Perfil
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="action-content">
+                            <h3>Cambiar Contraseña</h3>
+                            <p>Actualice su contraseña de acceso</p>
+                            <a href="/auth/cambiar-password" class="btn btn-warning">
+                                <i class="fas fa-lock"></i>
+                                Cambiar Contraseña
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fincas registradas -->
+            <div class="farms-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-warehouse"></i> Mis Fincas</h2>
+                    <a href="/fincas/mis-fincas" class="btn btn-outline">
+                        <i class="fas fa-eye"></i>
+                        Ver Todas
+                    </a>
+                </div>
+
+                <% if (fincas.length > 0) { %>
+                    <div class="farms-grid">
+                        <% fincas.slice(0, 3).forEach(finca => { %>
+                            <div class="farm-card">
+                                <div class="farm-header">
+                                    <% if (finca.logo_finca) { %>
+                                        <img src="/uploads/logos/<%= finca.logo_finca %>" alt="Logo de <%= finca.nombre_finca %>" class="farm-logo">
+                                    <% } else { %>
+                                        <div class="farm-logo-placeholder">
+                                            <i class="fas fa-warehouse"></i>
+                                        </div>
+                                    <% } %>
+                                    <div class="farm-info">
+                                        <h3><%= finca.nombre_finca %></h3>
+                                        <p class="farm-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <%= finca.estado_nombre || 'Estado no especificado' %>
+                                            <% if (finca.ciudad_nombre) { %>, <%= finca.ciudad_nombre %><% } %>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="farm-body">
+                                    <% if (finca.direccion_finca) { %>
+                                        <p class="farm-address">
+                                            <i class="fas fa-map"></i>
+                                            <%= finca.direccion_finca.length > 80 ? finca.direccion_finca.substring(0, 80) + '...' : finca.direccion_finca %>
+                                        </p>
+                                    <% } %>
+                                    
+                                    <% if (finca.latitud && finca.longitud) { %>
+                                        <p class="farm-coordinates">
+                                            <i class="fas fa-compass"></i>
+                                            <%= finca.latitud %>, <%= finca.longitud %>
+                                        </p>
+                                    <% } %>
+                                </div>
+
+                                <div class="farm-actions">
+                                    <a href="/fincas/<%= finca.id %>" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                        Ver Detalles
+                                    </a>
+                                    <a href="/fincas/<%= finca.id %>/editar" class="btn btn-sm btn-outline">
+                                        <i class="fas fa-edit"></i>
+                                        Editar
+                                    </a>
+                                    <a href="/auth/carnet/<%= finca.id %>" class="btn btn-sm btn-success">
+                                        <i class="fas fa-id-card"></i>
+                                        Carnet
+                                    </a>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+
+                    <% if (fincas.length > 3) { %>
+                        <div class="more-farms">
+                            <p>
+                                <i class="fas fa-info-circle"></i>
+                                Tienes <%= fincas.length - 3 %> finca<%= fincas.length - 3 > 1 ? 's' : '' %> más.
+                                <a href="/fincas/mis-fincas">Ver todas las fincas</a>
+                            </p>
+                        </div>
+                    <% } %>
+
+                <% } else { %>
+                    <div class="no-farms">
+                        <div class="no-farms-icon">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <h3>No tienes fincas registradas</h3>
+                        <p>Comienza registrando tu primera finca en el sistema</p>
+                        <a href="/fincas/nueva" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Registrar Primera Finca
+                        </a>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Enlaces útiles -->
+            <div class="links-section">
+                <h2><i class="fas fa-link"></i> Enlaces Útiles</h2>
+                <div class="links-grid">
+                    <a href="/auth/fincas" class="link-card">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Explorar Todas las Fincas</span>
+                    </a>
+                    
+                    <a href="mailto:soporte@sistemaganadero.ve" class="link-card">
+                        <i class="fas fa-headset"></i>
+                        <span>Soporte Técnico</span>
+                    </a>
+                    
+                    <a href="/ayuda" class="link-card">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Centro de Ayuda</span>
+                    </a>
+                    
+                    <a href="/documentos" class="link-card">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Documentos</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="dashboard-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2024 Sistema Ganadero Venezolano. Todos los derechos reservados.</p>
+                    <p>Desarrollado para el sector agropecuario de Venezuela</p>
+                </div>
+                <div class="footer-links">
+                    <a href="/privacidad">Política de Privacidad</a>
+                    <a href="/terminos">Términos de Uso</a>
+                    <a href="/contacto">Contacto</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animaciones de entrada
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animar las tarjetas de estadísticas
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'slideInUp 0.6s ease forwards';
+                }, index * 100);
+            });
+
+            // Animar las tarjetas de acción
+            const actionCards = document.querySelectorAll('.action-card');
+            actionCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'fadeIn 0.8s ease forwards';
+                }, (index * 150) + 300);
+            });
+
+            // Animar las tarjetas de fincas
+            const farmCards = document.querySelectorAll('.farm-card');
+            farmCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.animation = 'slideInUp 0.6s ease forwards';
+                }, (index * 200) + 600);
+            });
+        });
+
+        // Actualizar fecha/hora en tiempo real
+        function updateDateTime() {
+            const now = new Date();
+            const dateElements = document.querySelectorAll('.stat-number');
+            if (dateElements[1]) {
+                dateElements[1].textContent = now.toLocaleDateString('es-VE');
+            }
+        }
+
+        // Actualizar cada minuto
+        setInterval(updateDateTime, 60000);
+
+        // Efectos de hover para las tarjetas
+        document.querySelectorAll('.stat-card, .action-card, .farm-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Confirmación para acciones críticas
+        document.querySelectorAll('[data-confirm]').forEach(element => {
+            element.addEventListener('click', function(e) {
+                const message = this.getAttribute('data-confirm');
+                if (!confirm(message)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Auto-ocultar alertas después de 5 segundos
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => {
+                alert.style.animation = 'slideOutUp 0.5s ease forwards';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 5000);
+        });
+
+        // Lazy loading para imágenes
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // Tooltips simples
+        document.querySelectorAll('[data-tooltip]').forEach(element => {
+            element.addEventListener('mouseenter', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                tooltip.textContent = this.getAttribute('data-tooltip');
+                document.body.appendChild(tooltip);
+
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+
+                setTimeout(() => tooltip.classList.add('show'), 10);
+            });
+
+            element.addEventListener('mouseleave', function() {
+                const tooltip = document.querySelector('.tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            });
+        });
+
+        // Navegación responsive
+        const navToggle = document.querySelector('.nav-toggle');
+        const navMenu = document.querySelector('.navbar-nav');
+
+        if (navToggle) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+            });
+        }
+
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.navbar') && navMenu && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+            }
+        });
+
+        // Preload de páginas importantes
+        const importantLinks = [
+            '/fincas/nueva',
+            '/auth/perfil',
+            '/auth/carnet',
+            '/fincas/mis-fincas'
+        ];
+
+        importantLinks.forEach(link => {
+            const linkElement = document.createElement('link');
+            linkElement.rel = 'prefetch';
+            linkElement.href = link;
+            document.head.appendChild(linkElement);
+        });
+
+        // Estadísticas en tiempo real (simulado)
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-number');
+            numbers.forEach(number => {
+                const text = number.textContent;
+                if (/^\d+$/.test(text)) {
+                    const finalNumber = parseInt(text);
+                    let currentNumber = 0;
+                    const increment = finalNumber / 20;
+                    
+                    const timer = setInterval(() => {
+                        currentNumber += increment;
+                        if (currentNumber >= finalNumber) {
+                            number.textContent = finalNumber;
+                            clearInterval(timer);
+                        } else {
+                            number.textContent = Math.floor(currentNumber);
+                        }
+                    }, 50);
+                }
+            });
+        }
+
+        // Ejecutar animación de números al cargar
+        setTimeout(animateNumbers, 1000);
+    </script>
+
+    <style>
+        /* Animaciones específicas para el dashboard */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: absolute;
+            background: var(--dark-gray);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--dark-gray);
+        }
+
+        /* Lazy loading placeholder */
+        img.lazy {
+            opacity: 0.5;
+            filter: blur(5px);
+            transition: all 0.3s;
+        }
+
+        img:not(.lazy) {
+            opacity: 1;
+            filter: none;
+        }
+
+        /* Navegación responsive */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background: var(--primary-green);
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: center;
+                padding-top: 2rem;
+                transition: left 0.3s ease;
+                z-index: 999;
+            }
+
+            .navbar-nav.active {
+                left: 0;
+            }
+
+            .navbar-nav li {
+                margin: 1rem 0;
+            }
+
+            .nav-toggle {
+                display: block;
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+        }
+
+        /* Mejoras de accesibilidad */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus styles */
+        .btn:focus,
+        .link-card:focus {
+            outline: 2px solid var(--accent-green);
+            outline-offset: 2px;
+        }
+
+        /* Print styles */
+        @media print {
+            .navbar,
+            .dashboard-footer,
+            .actions-section {
+                display: none;
+            }
+
+            .container {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .farms-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</body>
+</html>
