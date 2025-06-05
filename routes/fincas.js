@@ -15,25 +15,18 @@ router.use(handleFlashMessages);
 // Ruta: GET /fincas/registro - Mostrar formulario de registro de finca
 router.get('/registro', async (req, res) => {
     try {
-        // Verificar si hay registro temporal de usuario
-        if (!req.session.registro_temporal && !req.session.user) {
-            req.session.error = {
-                tipo: 'error',
-                texto: 'Debe registrar un usuario primero'
-            };
-            return res.redirect('/usuarios/registro');
-        }
-
         const estados = await Ubicacion.obtenerEstados();
-        
+        // Mostrar mensaje de éxito si viene de registro de usuario
+        const success = req.session.success;
+        delete req.session.success;
         res.render('registro-finca', {
             title: 'Registro de Finca - Sistema Ganadero',
             estados: estados,
-            usuario: req.session.registro_temporal || req.session.user
+            usuario: req.session.registro_temporal || req.session.user,
+            success: success
         });
-        
     } catch (error) {
-        console.error('Error cargando formulario de finca:', error);
+        console.error('Error cargando formulario de registro de finca:', error);
         res.render('error', {
             title: 'Error',
             message: 'Error cargando el formulario de registro de finca'
@@ -149,20 +142,17 @@ router.post('/registro', [
         if (req.session.registro_temporal) {
             // Limpiar registro temporal
             delete req.session.registro_temporal;
-            
             req.session.success = {
                 tipo: 'success',
-                texto: 'Registro completado exitosamente. Ya puede iniciar sesión.'
+                texto: '¡Registro de finca exitoso! Ya puede iniciar sesión.'
             };
-            
             return res.redirect('/auth/login');
         } else {
             // Si es un usuario autenticado agregando una finca
             req.session.success = {
                 tipo: 'success',
-                texto: 'Finca registrada exitosamente'
+                texto: 'Finca registrada exitosamente.'
             };
-            
             return res.redirect('/auth/dashboard');
         }
 

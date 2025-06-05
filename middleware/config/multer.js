@@ -50,20 +50,22 @@ function fileFilter(req, file, cb) {
 const uploadProfile = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 2 * 1024 * 1024 } // 2MB
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 }).single('foto_perfil');
 
 const uploadLogo = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 2 * 1024 * 1024 } // 2MB
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 }).single('logo_finca');
 
 // Middleware para manejar errores de multer
 function handleMulterError(err, req, res, next) {
     if (err instanceof multer.MulterError || err) {
         req.session.error = err.message || 'Error al subir archivo';
-        return res.redirect('back');
+        // Redirección segura según Express 5.x
+        const redirectTo = req.get('Referrer') || '/';
+        return res.redirect(redirectTo);
     }
     next();
 }

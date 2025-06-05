@@ -24,30 +24,114 @@ router.post('/login', requireGuest, [
     if (!errors.isEmpty()) {
         return res.render('login', {
             title: 'Iniciar Sesión',
-            errors: errors.array()
+            error: { texto: errors.array()[0].msg },
+            formData: req.body
         });
     }
-    // ...lógica de autenticación aquí...
-    // Si éxito:
-    // req.session.user = { ... };
-    // res.redirect('/auth/dashboard');
-    // Si error:
-    // res.render('login', { ... });
+    // Permitir ambos nombres de campo para compatibilidad
+    const { nombre_usuario, contrasena, password } = req.body;
+    const passwordToCheck = contrasena || password;
+    try {
+        const usuario = await Usuario.buscarPorNombreUsuario(nombre_usuario);
+        if (!usuario) {
+            return res.render('login', {
+                title: 'Iniciar Sesión',
+                error: { texto: 'Usuario o contraseña incorrectos' },
+                formData: req.body
+            });
+        }
+        const passwordOk = await Usuario.verificarPassword(passwordToCheck, usuario.password_hash);
+        if (!passwordOk) {
+            return res.render('login', {
+                title: 'Iniciar Sesión',
+                error: { texto: 'Usuario o contraseña incorrectos' },
+                formData: req.body
+            });
+        }
+        // Guardar datos mínimos en sesión
+        req.session.user = {
+            login_id: usuario.login_id,
+            datos_id: usuario.datos_id,
+            nombre_usuario: usuario.nombre_usuario,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            correo: usuario.correo,
+            tipo_documento: usuario.tipo_documento,
+            numero_documento: usuario.numero_documento,
+            foto_perfil: usuario.foto_perfil,
+            estado_nombre: usuario.estado_nombre
+        };
+        // Redirigir al dashboard
+        res.redirect('/auth/dashboard');
+    } catch (error) {
+        console.error('Error en login:', error);
+        res.render('login', {
+            title: 'Iniciar Sesión',
+            error: { texto: 'Error interno del servidor' },
+            formData: req.body
+        });
+    }
 });
 
-// Ruta: GET /auth/logout - Cerrar sesión
-router.get('/logout', requireAuth, (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/auth/login');
-    });
-});
-
-// Ruta: GET /auth/dashboard - Panel principal (requiere login)
-router.get('/dashboard', requireAuth, (req, res) => {
-    res.render('dashboard', {
-        title: 'Panel de Usuario',
-        user: req.session.user
-    });
+// Ruta: POST /auth/registrar - Registro rápido desde login
+router.post('/registrar', [
+    body('nombre_usuario')
+        .trim()
+        .notEmpty().withMessage('El nombre de usuario es requerido')
+        .isLength({ min: 3, max: 50 }).withMessage('Debe tener entre 3 y 50 caracteres')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Solo letras, números y guiones bajos'),
+    body('contrasena')
+        .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.render('login', {
+            title: 'Iniciar Sesión',
+            error: { texto: errors.array()[0].msg },
+            formData: req.body
+        });
+    }
+    const { nombre_usuario, contrasena } = req.body;
+    try {
+        // Verificar unicidad
+        if (await Usuario.existeNombreUsuario(nombre_usuario)) {
+            return res.render('login', {
+                title: 'Iniciar Sesión',
+                error: { texto: 'El nombre de usuario ya está en uso' },
+                formData: req.body
+            });
+        }
+        // Crear usuario solo en usuarios_login
+        const saltRounds = 12;
+        const passwordHash = await require('bcryptjs').hash(contrasena, saltRounds);
+        const result = await require('../config/database').executeQuery(
+            'INSERT INTO usuarios_login (nombre_usuario, password_hash) VALUES (?, ?)',
+            [nombre_usuario, passwordHash]
+        );
+        // Buscar usuario recién creado
+        const usuario = await Usuario.buscarPorNombreUsuario(nombre_usuario);
+        // Guardar en sesión y redirigir al dashboard
+        req.session.user = {
+            login_id: usuario.login_id,
+            datos_id: usuario.datos_id,
+            nombre_usuario: usuario.nombre_usuario,
+            nombre: usuario.nombre,
+            apellido: usuario.apellido,
+            correo: usuario.correo,
+            tipo_documento: usuario.tipo_documento,
+            numero_documento: usuario.numero_documento,
+            foto_perfil: usuario.foto_perfil,
+            estado_nombre: usuario.estado_nombre
+        };
+        return res.redirect('/auth/dashboard');
+    } catch (error) {
+        console.error('Error en registro rápido:', error);
+        return res.render('login', {
+            title: 'Iniciar Sesión',
+            error: { texto: 'Error interno del servidor' },
+            formData: req.body
+        });
+    }
 });
 
 module.exports = router;

@@ -12,6 +12,7 @@ const { testConnection } = require('./config/database');
 const authRoutes = require('./routes/auth');
 const usuarioRoutes = require('./routes/usuarios');
 const fincaRoutes = require('./routes/fincas');
+const listadoFincasRoutes = require('./routes/listado_fincas');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ app.use(session({
 
 // Middleware para hacer disponible la información de sesión en todas las vistas
 app.use((req, res, next) => {
+    res.locals.usuario = req.session.user || null;
     res.locals.user = req.session.user || null;
     res.locals.isAuthenticated = !!req.session.user;
     next();
@@ -55,6 +57,7 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/usuarios', usuarioRoutes);
 app.use('/fincas', fincaRoutes);
+app.use('/listado-fincas', listadoFincasRoutes);
 
 // Ruta principal - Redirige al login
 app.get('/', (req, res) => {

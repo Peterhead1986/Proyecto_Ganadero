@@ -78,6 +78,34 @@ class Finca {
             throw error;
         }
     }
+
+    // Obtener listado completo de fincas con datos de usuario y ubicación
+    static async obtenerListadoCompleto() {
+        try {
+            const result = await executeQuery(`
+                SELECT 
+                    fd.*, -- Todos los campos de la finca
+                    e.nombre AS estado_nombre,
+                    c.nombre AS ciudad_nombre,
+                    m.nombre AS municipio_nombre,
+                    p.nombre AS parroquia_nombre,
+                    u.nombre AS usuario_nombre,
+                    u.apellido AS usuario_apellido,
+                    u.numero_documento AS usuario_cedula
+                FROM fincas_datos fd
+                LEFT JOIN ubicaciones_venezuela e ON fd.estado_id = e.id
+                LEFT JOIN ubicaciones_venezuela c ON fd.ciudad_id = c.id
+                LEFT JOIN ubicaciones_venezuela m ON fd.municipio_id = m.id
+                LEFT JOIN ubicaciones_venezuela p ON fd.parroquia_id = p.id
+                LEFT JOIN usuarios_datos u ON fd.usuario_id = u.id
+                ORDER BY fd.nombre_finca ASC
+            `);
+            return result;
+        } catch (error) {
+            console.error('Error obteniendo listado completo de fincas:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Finca;

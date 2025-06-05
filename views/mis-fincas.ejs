@@ -1,0 +1,42 @@
+<!-- views/mis-fincas.ejs -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Fincas</title>
+    <link rel="stylesheet" href="/css/dasboard.css">
+</head>
+<body>
+    <%- include('partials/_header') %>
+    <div class="container">
+        <h1>Mis Fincas</h1>
+        <% if (fincas && fincas.length > 0) { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre de la Finca</th>
+                        <th>Ubicación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% fincas.forEach(function(finca) { %>
+                        <tr>
+                            <td><%= finca.nombre %></td>
+                            <td><%= finca.ubicacion %></td>
+                            <td>
+                                <a href="/fincas/<%= finca.id %>">Ver</a>
+                                <a href="/fincas/editar/<%= finca.id %>">Editar</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <p>No tienes fincas registradas.</p>
+        <% } %>
+        <a href="/fincas/registrar" class="btn">Registrar Nueva Finca</a>
+    </div>
+    <%- include('partials/_footer') %>
+</body>
+</html>

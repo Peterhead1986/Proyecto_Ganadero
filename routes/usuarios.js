@@ -4,7 +4,7 @@ const { body, validationResult } = require('express-validator');
 
 const Usuario = require('../models/Usuario');
 const Ubicacion = require('../models/Ubicacion');
-const { requireGuest, handleFlashMessages } = require('../middleware/auth');
+const { handleFlashMessages } = require('../middleware/auth');
 const { uploadProfile, handleMulterError } = require('../middleware/config/multer');
 
 const router = express.Router();
@@ -12,16 +12,28 @@ const router = express.Router();
 // Aplicar middleware de mensajes flash
 router.use(handleFlashMessages);
 
+// Utilidad para renderizar el formulario de registro con errores y datos
+async function renderRegistroConError(res, req, mensaje) {
+    const estados = await Ubicacion.obtenerEstados();
+    return res.render('registro-usuario', {
+        title: 'Registro de Usuario - Sistema Ganadero',
+        error: {
+            tipo: 'error',
+            texto: mensaje
+        },
+        estados: estados,
+        formData: req.body
+    });
+}
+
 // Ruta: GET /usuarios/registro - Mostrar formulario de registro de usuario
-router.get('/registro', requireGuest, async (req, res) => {
+router.get('/registro', async (req, res) => {
     try {
         const estados = await Ubicacion.obtenerEstados();
-        
         res.render('registro-usuario', {
             title: 'Registro de Usuario - Sistema Ganadero',
             estados: estados
         });
-        
     } catch (error) {
         console.error('Error cargando formulario de registro:', error);
         res.render('error', {
@@ -33,7 +45,6 @@ router.get('/registro', requireGuest, async (req, res) => {
 
 // Ruta: POST /usuarios/registro - Procesar registro de usuario
 router.post('/registro', [
-    requireGuest,
     uploadProfile,
     handleMulterError,
     // Validaciones
@@ -45,7 +56,6 @@ router.post('/registro', [
         .withMessage('El nombre debe tener entre 2 y 100 caracteres')
         .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
         .withMessage('El nombre solo puede contener letras y espacios'),
-    
     body('apellido')
         .trim()
         .notEmpty()
@@ -54,17 +64,14 @@ router.post('/registro', [
         .withMessage('El apellido debe tener entre 2 y 100 caracteres')
         .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
         .withMessage('El apellido solo puede contener letras y espacios'),
-    
     body('correo')
         .trim()
         .isEmail()
         .withMessage('Debe proporcionar un correo válido')
         .normalizeEmail(),
-    
     body('tipo_documento')
         .isIn(['cedula', 'rif_juridico'])
         .withMessage('Tipo de documento inválido'),
-    
     body('numero_documento')
         .trim()
         .notEmpty()
@@ -73,19 +80,16 @@ router.post('/registro', [
         .withMessage('El número de documento debe tener entre 7 y 20 caracteres')
         .matches(/^[0-9\-]+$/)
         .withMessage('El número de documento solo puede contener números y guiones'),
-    
     body('direccion')
-        .optional()
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ max: 500 })
         .withMessage('La dirección no puede exceder 500 caracteres'),
-    
     body('estado_id')
         .notEmpty()
         .withMessage('Debe seleccionar un estado')
         .isInt({ min: 1 })
         .withMessage('Estado inválido'),
-    
     body('nombre_usuario')
         .trim()
         .notEmpty()
@@ -94,13 +98,11 @@ router.post('/registro', [
         .withMessage('El nombre de usuario debe tener entre 3 y 50 caracteres')
         .matches(/^[a-zA-Z0-9_]+$/)
         .withMessage('El nombre de usuario solo puede contener letras, números y guiones bajos'),
-    
     body('password')
         .isLength({ min: 6 })
         .withMessage('La contraseña debe tener al menos 6 caracteres')
         .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
         .withMessage('La contraseña debe contener al menos: 1 minúscula, 1 mayúscula y 1 número'),
-    
     body('password_confirmar')
         .custom((value, { req }) => {
             if (value !== req.body.password) {
@@ -113,137 +115,69 @@ router.post('/registro', [
         // Validar errores de entrada
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            const estados = await Ubicacion.obtenerEstados();
-            return res.render('registro-usuario', {
-                title: 'Registro de Usuario - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: errors.array()[0].msg
-                },
-                estados: estados,
-                formData: req.body
-            });
+            return renderRegistroConError(res, req, errors.array()[0].msg);
         }
 
-        const {
-            nombre, apellido, correo, tipo_documento, numero_documento,
-            direccion, estado_id, ciudad_id, municipio_id, parroquia_id,
-            nombre_usuario, password
-        } = req.body;
-
         // Validar ubicaciones
+        const { estado_id, ciudad_id, municipio_id, parroquia_id } = req.body;
         const validacionUbicacion = await Ubicacion.validarJerarquia(
             estado_id, ciudad_id, municipio_id, parroquia_id
         );
-
         if (!validacionUbicacion.valido) {
-            const estados = await Ubicacion.obtenerEstados();
-            return res.render('registro-usuario', {
-                title: 'Registro de Usuario - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: validacionUbicacion.mensaje
-                },
-                estados: estados,
-                formData: req.body
-            });
+            return renderRegistroConError(res, req, validacionUbicacion.mensaje);
         }
 
         // Verificar unicidad
-        const existeUsuario = await Usuario.existeNombreUsuario(nombre_usuario);
-        if (existeUsuario) {
-            const estados = await Ubicacion.obtenerEstados();
-            return res.render('registro-usuario', {
-                title: 'Registro de Usuario - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: 'El nombre de usuario ya está en uso'
-                },
-                estados: estados,
-                formData: req.body
-            });
+        const { nombre_usuario, correo, numero_documento } = req.body;
+        if (await Usuario.existeNombreUsuario(nombre_usuario)) {
+            return renderRegistroConError(res, req, 'El nombre de usuario ya está en uso');
+        }
+        if (await Usuario.existeCorreo(correo)) {
+            return renderRegistroConError(res, req, 'El correo electrónico ya está registrado');
+        }
+        if (await Usuario.existeDocumento(numero_documento)) {
+            return renderRegistroConError(res, req, 'El número de documento ya está registrado');
         }
 
-        const existeCorreo = await Usuario.existeCorreo(correo);
-        if (existeCorreo) {
-            const estados = await Ubicacion.obtenerEstados();
-            return res.render('registro-usuario', {
-                title: 'Registro de Usuario - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: 'El correo electrónico ya está registrado'
-                },
-                estados: estados,
-                formData: req.body
-            });
-        }
-
-        const existeDocumento = await Usuario.existeDocumento(numero_documento);
-        if (existeDocumento) {
-            const estados = await Ubicacion.obtenerEstados();
-            return res.render('registro-usuario', {
-                title: 'Registro de Usuario - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: 'El número de documento ya está registrado'
-                },
-                estados: estados,
-                formData: req.body
-            });
+        // Validar archivo subido (si existe)
+        if (req.file && !req.file.mimetype.startsWith('image/')) {
+            return renderRegistroConError(res, req, 'Solo se permiten archivos de imagen para la foto de perfil');
         }
 
         // Preparar datos
         const datosLogin = {
             nombre_usuario,
-            password
+            password: req.body.password
         };
-
         const datosPersonales = {
-            nombre,
-            apellido,
+            nombre: req.body.nombre,
+            apellido: req.body.apellido,
             correo,
-            tipo_documento,
+            tipo_documento: req.body.tipo_documento,
             numero_documento,
-            direccion,
+            direccion: req.body.direccion || null,
             estado_id: parseInt(estado_id),
-            ciudad_id: ciudad_id ? parseInt(ciudad_id) : null,
-            municipio_id: municipio_id ? parseInt(municipio_id) : null,
-            parroquia_id: parroquia_id ? parseInt(parroquia_id) : null,
+            ciudad_id: req.body.ciudad_id ? parseInt(req.body.ciudad_id) : null,
+            municipio_id: req.body.municipio_id ? parseInt(req.body.municipio_id) : null,
+            parroquia_id: req.body.parroquia_id ? parseInt(req.body.parroquia_id) : null,
             foto_perfil: req.file ? req.file.filename : null
         };
 
         // Crear usuario
         const resultado = await Usuario.crear(datosLogin, datosPersonales);
-
-        // Guardar ID en sesión temporal para el registro de finca
         req.session.registro_temporal = {
             usuario_datos_id: resultado.usuario_datos_id,
-            nombre: nombre,
-            apellido: apellido
+            nombre: req.body.nombre,
+            apellido: req.body.apellido
         };
-
-        console.log(`✅ Usuario registrado: ${nombre_usuario} (ID: ${resultado.usuario_datos_id})`);
-
         req.session.success = {
             tipo: 'success',
             texto: 'Usuario registrado exitosamente. Ahora registre su finca.'
         };
-
-        res.redirect('/fincas/registro');
-
+        return res.redirect('/fincas/registro');
     } catch (error) {
         console.error('Error registrando usuario:', error);
-        
-        const estados = await Ubicacion.obtenerEstados();
-        res.render('registro-usuario', {
-            title: 'Registro de Usuario - Sistema Ganadero',
-            error: {
-                tipo: 'error',
-                texto: 'Error interno del servidor. Intente nuevamente.'
-            },
-            estados: estados,
-            formData: req.body
-        });
+        return renderRegistroConError(res, req, 'Error interno del servidor. Intente nuevamente.');
     }
 });
 
@@ -311,9 +245,14 @@ router.get('/ubicaciones/parroquias/:municipioId', async (req, res) => {
 router.post('/validar-campo', async (req, res) => {
     try {
         const { campo, valor } = req.body;
+        if (!campo || !valor) {
+            return res.status(400).json({
+                success: false,
+                message: 'Campo y valor requeridos'
+            });
+        }
         let existe = false;
         let mensaje = '';
-
         switch (campo) {
             case 'nombre_usuario':
                 existe = await Usuario.existeNombreUsuario(valor);
@@ -333,13 +272,11 @@ router.post('/validar-campo', async (req, res) => {
                     message: 'Campo no válido'
                 });
         }
-
         res.json({
             success: true,
             existe: existe,
             mensaje: mensaje
         });
-
     } catch (error) {
         console.error('Error validando campo:', error);
         res.status(500).json({

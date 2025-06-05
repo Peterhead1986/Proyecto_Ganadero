@@ -1,0 +1,72 @@
+<!-- views/partials/_header.ejs -->
+<header>
+  <nav class="navbar">
+    <div class="container">
+      <a href="/auth/dashboard" class="navbar-brand">
+        <i class="fas fa-cow"></i> Sistema Ganadero Venezolano
+      </a>
+      <button class="navbar-toggle" aria-label="Abrir menú" onclick="document.querySelector('.navbar-nav').classList.toggle('open')">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+      <ul class="navbar-nav">
+        <li><a href="/auth/dashboard">Inicio</a></li>
+        <li><a href="/listado-fincas">Listado de fincas</a></li>
+        <li><a href="/usuarios/registro">Registrar usuario</a></li>
+        <li><a href="/auth/logout">Cerrar Sesión</a></li>
+      </ul>
+      <% if (usuario && usuario.nombre) { %>
+        <div class="navbar-user">
+          <i class="fas fa-user-circle"></i>
+          <span><%= usuario.nombre %> <%= usuario.apellido || '' %></span>
+        </div>
+      <% } %>
+    </div>
+  </nav>
+</header>
+<style>
+  .navbar {
+    background: linear-gradient(rgba(60,180,75,0.7), rgba(60,180,75,0.7)), url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+    color: #fff;
+    padding: 10px 0;
+    box-shadow: 0 2px 8px #0002;
+    min-height: 90px;
+    border-bottom: 3px solid #ffd700;
+  }
+  .navbar .container { display: flex; justify-content: space-between; align-items: center; position: relative; }
+  .navbar-brand { color: #fff; font-weight: bold; text-decoration: none; font-size: 1.4em; display: flex; align-items: center; gap: 0.5em; text-shadow: 1px 1px 6px #000a; }
+  .navbar-brand i { color: #ffd700; font-size: 1.2em; }
+  .navbar-nav { list-style: none; display: flex; gap: 1.5em; margin: 0; padding: 0; transition: max-height 0.3s; }
+  .navbar-nav li { display: inline; }
+  .navbar-nav a { color: #fff; text-decoration: none; font-weight: 500; transition: color 0.2s; text-shadow: 1px 1px 4px #000a; }
+  .navbar-nav a:hover { color: #ffd700; }
+  .navbar-user { display: flex; align-items: center; gap: 0.5em; background: #1b2836cc; padding: 6px 14px; border-radius: 20px; font-size: 1em; margin-left: 1em; box-shadow: 0 2px 8px #0002; }
+  .navbar-user i { color: #ffd700; font-size: 1.2em; }
+  .navbar-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; margin-left: 1em; }
+  .navbar-toggle .bar { width: 24px; height: 3px; background: #fff; border-radius: 2px; display: block; }
+  @media (max-width: 900px) {
+    .navbar-nav { gap: 1em; }
+    .navbar-user { font-size: 0.95em; padding: 5px 10px; }
+  }
+  @media (max-width: 700px) {
+    .navbar .container { flex-wrap: wrap; }
+    .navbar-toggle { display: flex; }
+    .navbar-nav { flex-direction: column; position: absolute; top: 100%; right: 0; background: #243447ee; width: 180px; max-height: 0; overflow: hidden; box-shadow: 0 4px 12px #0003; border-radius: 0 0 8px 8px; z-index: 10; }
+    .navbar-nav.open { max-height: 400px; padding: 10px 0; }
+    .navbar-nav li { display: block; margin: 0; }
+    .navbar-user { margin: 10px 0 0 0; }
+  }
+</style>
+<script>
+  // Cierra el menú móvil al hacer clic fuera
+  document.addEventListener('click', function(e) {
+    const nav = document.querySelector('.navbar-nav');
+    const toggle = document.querySelector('.navbar-toggle');
+    if (nav && toggle && nav.classList.contains('open')) {
+      if (!nav.contains(e.target) && !toggle.contains(e.target)) {
+        nav.classList.remove('open');
+      }
+    }
+  });
+</script>

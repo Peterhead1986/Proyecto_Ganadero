@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Fincas</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/_header', { usuario: typeof usuario !== 'undefined' ? usuario : null }) %>
+    <div class="container">
+        <h1><i class="fas fa-warehouse"></i> Listado de Fincas</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>ID</th>
+                    <th>Nombre de la Finca</th>
+                    <th>Dirección</th>
+                    <th>Latitud</th>
+                    <th>Longitud</th>
+                    <th>Estado</th>
+                    <th>Ciudad</th>
+                    <th>Municipio</th>
+                    <th>Parroquia</th>
+                    <th>Usuario</th>
+                    <th>Logo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (fincas && fincas.length > 0) { %>
+                    <% fincas.forEach(function(finca) { %>
+                        <tr>
+                            <td>
+                                <% if (finca.foto_perfil) { %>
+                                    <img src="/uploads/profiles/<%= finca.foto_perfil %>" alt="Foto perfil" style="max-width:50px;max-height:50px;border-radius:50%;object-fit:cover;">
+                                <% } else { %>
+                                    <span title="Sin foto"><i class="fas fa-user-circle fa-2x text-muted"></i></span>
+                                <% } %>
+                            </td>
+                            <td><%= finca.id %></td>
+                            <td><%= finca.nombre_finca %></td>
+                            <td><%= finca.direccion_finca %></td>
+                            <td><%= finca.latitud %></td>
+                            <td><%= finca.longitud %></td>
+                            <td><%= finca.estado_nombre %></td>
+                            <td><%= finca.ciudad_nombre %></td>
+                            <td><%= finca.municipio_nombre %></td>
+                            <td><%= finca.parroquia_nombre %></td>
+                            <td>
+                                <strong><%= finca.usuario_nombre %></strong><br>
+                                <span><%= finca.usuario_apellido %></span><br>
+                                <small class="text-muted">C.I.: <%= finca.usuario_cedula %></small>
+                            </td>
+                            <td>
+                                <% if (finca.logo_finca) { %>
+                                    <img src="/uploads/logos/<%= finca.logo_finca %>" alt="Logo" style="max-width:60px;max-height:60px;">
+                                <% } else { %>
+                                    <span class="text-muted">Sin logo</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/fincas/<%= finca.id %>/editar" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> Editar</a>
+                                <form action="/fincas/<%= finca.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar esta finca?');">
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="13">No hay fincas registradas.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+        <a href="/auth/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
+    </div>
+    <%- include('partials/_footer') %>
+</body>
+</html>

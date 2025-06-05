@@ -13,6 +13,7 @@
     </style>
 </head>
 <body>
+    <%- include('partials/_header') %>
     <div class="error-container">
         <h1><%= title || 'Error' %></h1>
         <p><%= message || 'Ha ocurrido un error inesperado.' %></p>
@@ -24,5 +25,6 @@
         <% } %>
         <a href="/">Volver al inicio</a>
     </div>
+    <%- include('partials/_footer') %>
 </body>
 </html>

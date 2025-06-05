@@ -9,22 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Header de navegación -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="navbar-brand">
-                <i class="fas fa-cow"></i>
-                Sistema Ganadero Venezolano
-            </div>
-            <ul class="navbar-nav">
-                <li><a href="/auth/dashboard"><i class="fas fa-home"></i> Inicio</a></li>
-                <li><a href="/fincas/mis-fincas"><i class="fas fa-warehouse"></i> Mis Fincas</a></li>
-                <li><a href="/fincas/mis-fincas"><i class="fas fa-map-marked-alt"></i> Ver Todas las Fincas</a></li>
-                <li><a href="/auth/perfil"><i class="fas fa-user"></i> Mi Perfil</a></li>
-                <li><a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
-            </ul>
-        </div>
-    </nav>
+    <%- include('partials/_header') %>
 
     <!-- Contenido principal -->
     <div class="dashboard-container">
@@ -298,7 +283,7 @@
             <div class="links-section">
                 <h2><i class="fas fa-link"></i> Enlaces Útiles</h2>
                 <div class="links-grid">
-                    <a href="/fincas/mis-fincas" class="link-card">
+                    <a href="/fincas/listado" class="link-card">
                         <i class="fas fa-map-marked-alt"></i>
                         <span>Explorar Todas las Fincas</span>
                     </a>
@@ -322,22 +307,7 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="dashboard-footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-info">
-                    <p>&copy; 2024 Sistema Ganadero Venezolano. Todos los derechos reservados.</p>
-                    <p>Desarrollado para el sector agropecuario de Venezuela</p>
-                </div>
-                <div class="footer-links">
-                    <a href="/privacidad">Política de Privacidad</a>
-                    <a href="/terminos">Términos de Uso</a>
-                    <a href="/contacto">Contacto</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <%- include('partials/_footer') %>
 
     <script>
         // Animaciones de entrada
