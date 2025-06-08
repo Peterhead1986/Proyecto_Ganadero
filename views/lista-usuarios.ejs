@@ -1,0 +1,234 @@
+<!-- views/lista-usuarios.ejs - Lista de usuarios para admins -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Limitar ancho de columnas largas y hacer la tabla responsive */
+        .usuarios-table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        .table th,
+        .table td {
+            white-space: nowrap;
+            font-size: 0.97em;
+            padding: 0.45em 0.7em;
+        }
+        .table td.col-direccion,
+        .table th.col-direccion {
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .table td.col-correo,
+        .table th.col-correo {
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .table td.col-nombre,
+        .table th.col-nombre,
+        .table td.col-apellido,
+        .table th.col-apellido {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 900px) {
+            .table th, .table td {
+                font-size: 0.92em;
+                padding: 0.35em 0.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/_header') %>
+    <div class="dashboard-main" style="display: flex;">
+      <%- include('partials/_sidebar') %>
+      <main style="flex:1;">
+        <div class="container">
+            <div class="card" style="margin-top:2em;">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> Lista de Usuarios</h2>
+                    <p>Todos los usuarios registrados en el sistema</p>
+                </div>
+                <div class="card-body">
+                    <% if (typeof success !== 'undefined' && success) { %>
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <%= success.texto || success %>
+                        </div>
+                    <% } %>
+                    <form method="get" action="/lista-usuarios" style="margin-bottom:1em;display:flex;flex-wrap:wrap;gap:0.5em;align-items:center;">
+                        <input type="text" name="filtro" value="<%= filtro %>" placeholder="Buscar por nombre, usuario o correo" class="form-control" style="width:220px;display:inline-block;">
+                        <select name="estado_id" class="form-control" style="width:150px;">
+                            <option value="">Estado</option>
+                            <% estados.forEach(e => { %>
+                                <option value="<%= e.id %>" <%= estado_id == e.id ? 'selected' : '' %>><%= e.nombre %></option>
+                            <% }) %>
+                        </select>
+                        <select name="ciudad_id" class="form-control" style="width:150px;">
+                            <option value="">Ciudad</option>
+                            <% ciudades.forEach(c => { %>
+                                <option value="<%= c.id %>" <%= ciudad_id == c.id ? 'selected' : '' %>><%= c.nombre %></option>
+                            <% }) %>
+                        </select>
+                        <select name="municipio_id" class="form-control" style="width:150px;">
+                            <option value="">Municipio</option>
+                            <% municipios.forEach(m => { %>
+                                <option value="<%= m.id %>" <%= municipio_id == m.id ? 'selected' : '' %>><%= m.nombre %></option>
+                            <% }) %>
+                        </select>
+                        <select name="parroquia_id" class="form-control" style="width:150px;">
+                            <option value="">Parroquia</option>
+                            <% parroquias.forEach(p => { %>
+                                <option value="<%= p.id %>" <%= parroquia_id == p.id ? 'selected' : '' %>><%= p.nombre %></option>
+                            <% }) %>
+                        </select>
+                        <button type="submit" class="sidebar-btn" style="padding:0.25em 0.7em;"><i class="fas fa-search"></i> Buscar</button>
+                    </form>
+                    <div class="usuarios-table-container">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th class="col-nombre">Nombre</th>
+                                    <th class="col-apellido">Apellido</th>
+                                    <th class="col-correo">Correo</th>
+                                    <th>Tipo Doc</th>
+                                    <th>N° Documento</th>
+                                    <th class="col-direccion">Dirección</th>
+                                    <th>Estado</th>
+                                    <th>Ciudad</th>
+                                    <th>Municipio</th>
+                                    <th>Parroquia</th>
+                                    <th>Foto</th>
+                                    <th>Creado</th>
+                                    <th>Actualizado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (usuarios && usuarios.length > 0) { %>
+                                    <% usuarios.forEach(u => { %>
+                                        <tr>
+                                            <td><%= u.datos_id %></td>
+                                            <td><%= u.nombre_usuario %></td>
+                                            <td class="col-nombre"><%= u.nombre %></td>
+                                            <td class="col-apellido"><%= u.apellido %></td>
+                                            <td class="col-correo"><%= u.correo %></td>
+                                            <td><%= u.tipo_documento %></td>
+                                            <td><%= u.numero_documento %></td>
+                                            <td class="col-direccion"><%= u.direccion || '' %></td>
+                                            <td><%= u.estado_id || '' %></td>
+                                            <td><%= u.ciudad_id || '' %></td>
+                                            <td><%= u.municipio_id || '' %></td>
+                                            <td><%= u.parroquia_id || '' %></td>
+                                            <td>
+                                                <% if (u.foto_perfil) { %>
+                                                    <img src="/uploads/profiles/<%= u.foto_perfil %>" alt="Foto" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+                                                <% } %>
+                                            </td>
+                                            <td><%= u.creado ? u.creado.toLocaleString ? u.creado.toLocaleString() : u.creado : '' %></td>
+                                            <td><%= u.actualizado ? u.actualizado.toLocaleString ? u.actualizado.toLocaleString() : u.actualizado : '' %></td>
+                                            <td>
+                                                <a href="/usuarios/editar?id=<%= u.datos_id %>" class="sidebar-btn" style="padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                    <i class="fas fa-edit"></i> Editar
+                                                </a>
+                                                <a href="/usuarios/carnet/<%= u.datos_id %>" class="sidebar-btn" style="background:#3cb34a;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                    <i class="fas fa-id-card"></i> Generar Carnet
+                                                </a>
+                                                <a href="/fincas/registro?usuario_id=<%= u.datos_id %>" class="sidebar-btn" style="background:#1e88e5;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                    <i class="fas fa-tractor"></i> Registrar Finca
+                                                </a>
+                                                <form action="/lista-usuarios/eliminar/<%= u.datos_id %>" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar este usuario?');">
+                                                    <button type="submit" class="sidebar-btn" style="background:#e74c3c;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;border:none;">
+                                                        <i class="fas fa-trash"></i> Eliminar
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <% }) %>
+                                <% } else { %>
+                                    <tr><td colspan="15" style="text-align:center;">No hay usuarios registrados.</td></tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:1em;text-align:center;">
+                        <% for(let i=1; i<=totalPaginas; i++) { %>
+                            <a href="/lista-usuarios?pagina=<%= i %>&filtro=<%= filtro %>" class="sidebar-btn" style="margin:0 2px;<%= (i===pagina) ? 'background:#3cb34a;color:#fff;' : '' %>"><%= i %></a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </main>
+    </div>
+    <%- include('partials/_footer') %>
+    <script>
+        // Recarga dinámica de selects dependientes vía AJAX y conserva selección previa
+        const estadoSel = document.querySelector('select[name=estado_id]');
+        const ciudadSel = document.querySelector('select[name=ciudad_id]');
+        const municipioSel = document.querySelector('select[name=municipio_id]');
+        const parroquiaSel = document.querySelector('select[name=parroquia_id]');
+        const ciudadIdPrev = '<%= ciudad_id %>';
+        const municipioIdPrev = '<%= municipio_id %>';
+        const parroquiaIdPrev = '<%= parroquia_id %>';
+
+        async function cargarCiudades(estadoId, selectedId) {
+          ciudadSel.innerHTML = '<option value="">Cargando...</option>';
+          municipioSel.innerHTML = '<option value="">Municipio</option>';
+          parroquiaSel.innerHTML = '<option value="">Parroquia</option>';
+          if (!estadoId) { ciudadSel.innerHTML = '<option value="">Ciudad</option>'; return; }
+          const res = await fetch(`/usuarios/ubicaciones/ciudades/${estadoId}`);
+          const data = await res.json();
+          ciudadSel.innerHTML = '<option value="">Ciudad</option>' + (data.ciudades||[]).map(c => `<option value="${c.id}"${selectedId==c.id? ' selected' : ''}>${c.nombre}</option>`).join('');
+          if(selectedId) cargarMunicipios(selectedId, municipioIdPrev);
+        }
+        async function cargarMunicipios(ciudadId, selectedId) {
+          municipioSel.innerHTML = '<option value="">Cargando...</option>';
+          parroquiaSel.innerHTML = '<option value="">Parroquia</option>';
+          if (!ciudadId) { municipioSel.innerHTML = '<option value="">Municipio</option>'; return; }
+          const res = await fetch(`/usuarios/ubicaciones/municipios/${ciudadId}`);
+          const data = await res.json();
+          municipioSel.innerHTML = '<option value="">Municipio</option>' + (data.municipios||[]).map(m => `<option value="${m.id}"${selectedId==m.id? ' selected' : ''}>${m.nombre}</option>`).join('');
+          if(selectedId) cargarParroquias(selectedId, parroquiaIdPrev);
+        }
+        async function cargarParroquias(municipioId, selectedId) {
+          parroquiaSel.innerHTML = '<option value="">Cargando...</option>';
+          if (!municipioId) { parroquiaSel.innerHTML = '<option value="">Parroquia</option>'; return; }
+          const res = await fetch(`/usuarios/ubicaciones/parroquias/${municipioId}`);
+          const data = await res.json();
+          parroquiaSel.innerHTML = '<option value="">Parroquia</option>' + (data.parroquias||[]).map(p => `<option value="${p.id}"${selectedId==p.id? ' selected' : ''}>${p.nombre}</option>`).join('');
+        }
+        if(estadoSel) {
+          estadoSel.addEventListener('change', function() {
+            cargarCiudades(this.value, '');
+          });
+        }
+        if(ciudadSel) {
+          ciudadSel.addEventListener('change', function() {
+            cargarMunicipios(this.value, '');
+          });
+        }
+        if(municipioSel) {
+          municipioSel.addEventListener('change', function() {
+            cargarParroquias(this.value, '');
+          });
+        }
+        // Precarga selects dependientes si hay selección previa
+        if(estadoSel && estadoSel.value) cargarCiudades(estadoSel.value, ciudadIdPrev);
+        if(ciudadSel && ciudadSel.value) cargarMunicipios(ciudadSel.value, municipioIdPrev);
+        if(municipioSel && municipioSel.value) cargarParroquias(municipioSel.value, parroquiaIdPrev);
+    </script>
+</body>
+</html>

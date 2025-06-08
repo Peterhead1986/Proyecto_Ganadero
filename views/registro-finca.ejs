@@ -64,6 +64,22 @@
 
                 <form action="/fincas/registro" method="POST" enctype="multipart/form-data" class="registro-form" id="fincaForm">
                     <div class="card-body">
+                        <!-- Si el admin está registrando para otro usuario, mostrar el select de usuario -->
+                        <% if (typeof usuario !== 'undefined' && usuario && typeof usuario_id !== 'undefined' && usuario_id && user && user.rol === 'admin') { %>
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="usuario_id">
+                                        <i class="fas fa-user"></i> Usuario propietario de la finca *
+                                    </label>
+                                    <select id="usuario_id" name="usuario_id" class="form-control" required>
+                                        <option value="<%= parseInt(usuario.datos_id) %>" selected><%= usuario.nombre_usuario %> - <%= usuario.nombre %> <%= usuario.apellido %> (<%= usuario.correo %>)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        <% } else if (typeof usuario_id !== 'undefined' && usuario_id) { %>
+                            <input type="hidden" name="usuario_id" value="<%= parseInt(usuario_id) %>">
+                        <% } %>
+
                         <!-- Información básica de la finca -->
                         <div class="form-section">
                             <h3><i class="fas fa-info-circle"></i> Información Básica</h3>

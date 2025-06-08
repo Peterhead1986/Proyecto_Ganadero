@@ -11,10 +11,17 @@
         <span class="bar"></span>
       </button>
       <ul class="navbar-nav">
-        <li><a href="/auth/dashboard">Inicio</a></li>
-        <li><a href="/listado-fincas">Listado de fincas</a></li>
-        <li><a href="/usuarios/registro">Registrar usuario</a></li>
-        <li><a href="/auth/logout">Cerrar Sesión</a></li>
+        <li>
+          <a href="/auth/dashboard" class="navbar-btn-home">
+            <i class="fas fa-home"></i> Inicio
+          </a>
+        </li>
+        <li><a href="/listado-fincas" class="navbar-btn">Listado de fincas</a></li>
+        <li><a href="/usuarios/registro" class="navbar-btn">Registrar usuario</a></li>
+        <% if (usuario && usuario.rol === 'admin') { %>
+          <li><a href="/lista-usuarios" class="navbar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
+        <% } %>
+        <li><a href="/auth/logout" class="navbar-btn">Cerrar Sesión</a></li>
       </ul>
       <% if (usuario && usuario.nombre) { %>
         <div class="navbar-user">
@@ -45,6 +52,51 @@
   .navbar-user i { color: #ffd700; font-size: 1.2em; }
   .navbar-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; margin-left: 1em; }
   .navbar-toggle .bar { width: 24px; height: 3px; background: #fff; border-radius: 2px; display: block; }
+  .navbar-nav a.navbar-btn,
+  .navbar-nav a.navbar-btn-home {
+    background: var(--primary-green, #3cb34a);
+    color: #fff;
+    border-radius: 22px 22px 18px 18px/18px 18px 22px 22px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px #0002, 0 1.5px 0 #2e7d32 inset;
+    border: 1.5px solid #2e7d32;
+    text-shadow: 1px 1px 4px #000a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    padding: 0.32em 0.95em;
+    margin-right: 0.3em;
+    font-size: 0.98em;
+    min-height: 32px;
+    min-width: 0;
+    transition: background 0.18s, box-shadow 0.18s, transform 0.09s, border-radius 0.18s;
+    letter-spacing: 0.01em;
+    border-bottom: 2.5px solid #ffd700;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    backdrop-filter: blur(2px);
+  }
+  .navbar-nav a.navbar-btn-home {
+    background: var(--primary-green, #3cb34a);
+    color: #fff;
+    font-weight: bold;
+    border: 1.5px solid #2e7d32;
+    box-shadow: 0 2px 12px #3cb34a55, 0 1.5px 0 #fff6 inset;
+  }
+  .navbar-nav a.navbar-btn:hover,
+  .navbar-nav a.navbar-btn-home:hover {
+    background: #2e7d32;
+    color: #fff;
+    transform: translateY(-1.5px) scale(1.045) rotate(-2deg);
+    box-shadow: 0 4px 16px #3cb34a99, 0 2px 0 #fff6 inset;
+    border-radius: 28px 18px 28px 18px/18px 28px 18px 28px;
+    border-color: #2e7d32;
+  }
+  .navbar-nav a.navbar-btn-home i {
+    font-size: 1.1em;
+    margin-right: 0.22em;
+  }
   @media (max-width: 900px) {
     .navbar-nav { gap: 1em; }
     .navbar-user { font-size: 0.95em; padding: 5px 10px; }

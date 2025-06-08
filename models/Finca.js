@@ -106,6 +106,47 @@ class Finca {
             throw error;
         }
     }
+
+    // Obtener fincas paginadas y filtradas
+    static async obtenerPaginado({ pagina = 1, limite = 10, filtro = '', estado_id, ciudad_id, municipio_id, parroquia_id, propietario_id }) {
+        const offset = (pagina - 1) * limite;
+        const filtroSQL = filtro ? `%${filtro}%` : '%';
+        let where = `WHERE (fd.nombre_finca LIKE ? OR fd.direccion_finca LIKE ?)`;
+        let params = [filtroSQL, filtroSQL];
+        if (estado_id) { where += ' AND fd.estado_id = ?'; params.push(estado_id); }
+        if (ciudad_id) { where += ' AND fd.ciudad_id = ?'; params.push(ciudad_id); }
+        if (municipio_id) { where += ' AND fd.municipio_id = ?'; params.push(municipio_id); }
+        if (parroquia_id) { where += ' AND fd.parroquia_id = ?'; params.push(parroquia_id); }
+        if (propietario_id) { where += ' AND fd.usuario_id = ?'; params.push(propietario_id); }
+        // Total
+        const totalRes = await executeQuery(
+            `SELECT COUNT(*) as total FROM fincas_datos fd ${where}`,
+            params
+        );
+        const total = totalRes[0].total;
+        // Página
+        const fincas = await executeQuery(
+            `SELECT fd.*, 
+                e.nombre as estado_nombre,
+                c.nombre as ciudad_nombre,
+                m.nombre as municipio_nombre,
+                p.nombre as parroquia_nombre,
+                u.nombre as usuario_nombre,
+                u.apellido as usuario_apellido,
+                u.numero_documento as usuario_cedula
+             FROM fincas_datos fd
+             LEFT JOIN ubicaciones_venezuela e ON fd.estado_id = e.id
+             LEFT JOIN ubicaciones_venezuela c ON fd.ciudad_id = c.id
+             LEFT JOIN ubicaciones_venezuela m ON fd.municipio_id = m.id
+             LEFT JOIN ubicaciones_venezuela p ON fd.parroquia_id = p.id
+             LEFT JOIN usuarios_datos u ON fd.usuario_id = u.id
+             ${where}
+             ORDER BY fd.nombre_finca ASC
+             LIMIT ? OFFSET ?`,
+            [...params, limite, offset]
+        );
+        return { fincas, total };
+    }
 }
 
 module.exports = Finca;

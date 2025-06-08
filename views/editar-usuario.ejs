@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Datos de Usuario</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/_header') %>
+    <div class="container">
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-edit"></i> Editar Datos de Usuario</h2>
+                    <p>Actualice sus datos personales y de contacto</p>
+                </div>
+                <% if (typeof error !== 'undefined' && error) { %>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <%= error.texto || error %>
+                    </div>
+                <% } %>
+                <% if (typeof success !== 'undefined' && success) { %>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <%= success.texto || success %>
+                    </div>
+                <% } %>
+                <form action="/usuarios/editar" method="POST" enctype="multipart/form-data" class="registro-form" id="editarUsuarioForm">
+                    <div class="card-body">
+                        <div class="search-user-bar" style="margin-bottom:1.5em;">
+                          <label for="busqueda_usuario" style="font-weight:600;display:block;margin-bottom:0.3em;">
+                            <i class="fas fa-search"></i> Buscar usuario a editar
+                          </label>
+                          <div style="position:relative;max-width:400px;">
+                            <input type="text" id="busqueda_usuario" class="form-control" placeholder="Nombre, usuario o correo..." autocomplete="off">
+                            <ul id="sugerencias_usuarios" class="autocomplete-list" style="position:absolute;top:110%;left:0;width:100%;z-index:10;background:#fff;border-radius:0 0 10px 10px;box-shadow:0 4px 16px #0002;list-style:none;padding:0;margin:0;display:none;"></ul>
+                          </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="nombre"><i class="fas fa-user"></i> Nombre *</label>
+                                    <input type="text" id="nombre" name="nombre" class="form-control" value="<%= usuario && usuario.nombre ? usuario.nombre : '' %>" required placeholder="Ingrese su nombre">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label for="apellido"><i class="fas fa-user"></i> Apellido *</label>
+                                    <input type="text" id="apellido" name="apellido" class="form-control" value="<%= usuario && usuario.apellido ? usuario.apellido : '' %>" required placeholder="Ingrese su apellido">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="correo"><i class="fas fa-envelope"></i> Correo Electrónico *</label>
+                            <input type="email" id="correo" name="correo" class="form-control" value="<%= usuario && usuario.correo ? usuario.correo : '' %>" required placeholder="ejemplo@correo.com">
+                        </div>
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="tipo_documento"><i class="fas fa-id-card"></i> Tipo de Documento *</label>
+                                    <select id="tipo_documento" name="tipo_documento" class="form-control" required>
+                                        <option value="">Seleccionar...</option>
+                                        <option value="cedula" <%= usuario && usuario.tipo_documento === 'cedula' ? 'selected' : '' %>>Cédula de Identidad</option>
+                                        <option value="rif_juridico" <%= usuario && usuario.tipo_documento === 'rif_juridico' ? 'selected' : '' %>>RIF Jurídico</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-8">
+                                <div class="form-group">
+                                    <label for="numero_documento"><i class="fas fa-hashtag"></i> Número de Documento *</label>
+                                    <input type="text" id="numero_documento" name="numero_documento" class="form-control" value="<%= usuario && usuario.numero_documento ? usuario.numero_documento : '' %>" required placeholder="Ej: 12345678 o J-12345678-9">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="direccion"><i class="fas fa-map-marker-alt"></i> Dirección</label>
+                            <textarea id="direccion" name="direccion" class="form-control" rows="3" placeholder="Ingrese su dirección completa"><%= usuario && usuario.direccion ? usuario.direccion : '' %></textarea>
+                        </div>
+                        <div class="form-section">
+                            <h3><i class="fas fa-map"></i> Ubicación</h3>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="estado_id"><i class="fas fa-map"></i> Estado *</label>
+                                        <select id="estado_id" name="estado_id" class="form-control" required>
+                                            <option value="">Seleccionar estado...</option>
+                                            <% if (typeof estados !== 'undefined' && estados) { %>
+                                                <% estados.forEach(estado => { %>
+                                                    <option value="<%= estado.id %>" <%= usuario && usuario.estado_id == estado.id ? 'selected' : '' %>><%= estado.nombre %></option>
+                                                <% }) %>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="ciudad_id"><i class="fas fa-city"></i> Ciudad</label>
+                                        <select id="ciudad_id" name="ciudad_id" class="form-control">
+                                            <option value="">Seleccionar ciudad...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="municipio_id"><i class="fas fa-building"></i> Municipio</label>
+                                        <select id="municipio_id" name="municipio_id" class="form-control">
+                                            <option value="">Seleccionar municipio...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="parroquia_id"><i class="fas fa-church"></i> Parroquia</label>
+                                        <select id="parroquia_id" name="parroquia_id" class="form-control">
+                                            <option value="">Seleccionar parroquia...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="foto_perfil"><i class="fas fa-camera"></i> Foto de Perfil</label>
+                            <div class="file-upload-container">
+                                <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*" class="file-input">
+                                <label for="foto_perfil" class="file-label">
+                                    <i class="fas fa-upload"></i> Seleccionar imagen
+                                </label>
+                                <div class="file-info">Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB</div>
+                                <div class="image-preview" id="foto-preview">
+                                    <% if (usuario && usuario.foto_perfil) { %>
+                                        <img src="/uploads/profiles/<%= usuario.foto_perfil %>" alt="Foto de perfil actual" style="max-width: 150px; max-height: 150px; border-radius: 8px;">
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="form-actions">
+                            <a href="/auth/dashboard" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <%- include('partials/_footer') %>
+    <script src="/js/ubicaciones.js"></script>
+    <script src="/js/validaciones.js"></script>
+    <script>
+        // Inicializar validaciones en tiempo real y preview de imagen
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFormValidation();
+            setupImagePreview();
+        });
+        // Autocompletado de usuarios para admins
+        const inputBusqueda = document.getElementById('busqueda_usuario');
+        const listaSugerencias = document.getElementById('sugerencias_usuarios');
+        if(inputBusqueda) {
+          inputBusqueda.addEventListener('input', async function() {
+            const query = this.value.trim();
+            if(query.length < 2) {
+              listaSugerencias.style.display = 'none';
+              listaSugerencias.innerHTML = '';
+              return;
+            }
+            try {
+              const res = await fetch(`/usuarios/buscar?query=${encodeURIComponent(query)}`);
+              const data = await res.json();
+              if(data.success && data.usuarios.length > 0) {
+                listaSugerencias.innerHTML = data.usuarios.map(u =>
+                  `<li style='padding:0.5em 1em;cursor:pointer;border-bottom:1px solid #eee;' onclick="window.location='/usuarios/editar?id=${u.datos_id}'">
+                    <i class='fas fa-user'></i> <b>${u.nombre} ${u.apellido}</b> <span style='color:#888;font-size:0.95em;'>(${u.nombre_usuario} - ${u.correo})</span>
+                  </li>`
+                ).join('');
+                listaSugerencias.style.display = 'block';
+              } else {
+                listaSugerencias.innerHTML = `<li style='padding:0.5em 1em;color:#888;'>No se encontraron usuarios</li>`;
+                listaSugerencias.style.display = 'block';
+              }
+            } catch(e) {
+              listaSugerencias.innerHTML = `<li style='padding:0.5em 1em;color:#e74c3c;'>Error buscando usuarios</li>`;
+              listaSugerencias.style.display = 'block';
+            }
+          });
+          document.addEventListener('click', function(e) {
+            if(!inputBusqueda.contains(e.target) && !listaSugerencias.contains(e.target)) {
+              listaSugerencias.style.display = 'none';
+            }
+          });
+        }
+    </script>
+    <style>
+    .autocomplete-list li:hover { background: #f3f3f3; }
+    </style>
+</body>
+</html>

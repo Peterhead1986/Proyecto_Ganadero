@@ -58,18 +58,9 @@ const requireCompleteProfile = async (req, res, next) => {
 // Middleware para inyectar información del usuario en las vistas
 const injectUserData = async (req, res, next) => {
     if (req.session.user) {
-        try {
-            const usuario = await Usuario.buscarPorId(req.session.user.datos_id);
-            res.locals.currentUser = usuario;
-            res.locals.isLoggedIn = true;
-        } catch (error) {
-            console.error('Error obteniendo datos del usuario:', error);
-            res.locals.currentUser = null;
-            res.locals.isLoggedIn = false;
-        }
+        res.locals.user = req.session.user;
     } else {
-        res.locals.currentUser = null;
-        res.locals.isLoggedIn = false;
+        res.locals.user = null;
     }
     next();
 };
@@ -188,9 +179,8 @@ module.exports = {
     requireAuth,
     requireGuest,
     requireCompleteProfile,
-    injectUserData,
     handleFlashMessages,
-    logUserActions,
+    injectUserData,
     checkResourceOwnership,
     rateLimitLogin
 };

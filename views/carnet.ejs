@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carnet Ganadero</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .carnet-container {
+            width: 350px;
+            height: 220px;
+            /* background: <%= fondoColor %>; */
+            border-radius: 16px;
+            box-shadow: 0 2px 12px #0002;
+            margin: 40px auto;
+            padding: 18px 18px 12px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            position: relative;
+        }
+        .carnet-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1em;
+        }
+        .carnet-foto {
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid #3cb34a;
+        }
+        .carnet-datos {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+            font-size: 1em;
+        }
+        .carnet-label {
+            font-weight: 600;
+            color: #3cb34a;
+            font-size: 0.93em;
+        }
+        .carnet-nombre {
+            font-size: 1.15em;
+            font-weight: bold;
+            color: #222c36;
+        }
+        .carnet-finca {
+            font-size: 1.05em;
+            color: #1b2836;
+            font-weight: 500;
+        }
+        .carnet-qr {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            width: 60px;
+            height: 60px;
+        }
+        .carnet-logo {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 0 0;
+            position: absolute;
+            left: 50%;
+            bottom: 10px;
+            transform: translateX(-50%);
+        }
+        @media print {
+            body * { visibility: hidden; }
+            .carnet-container, .carnet-container * { visibility: visible; }
+            .carnet-container { margin: 0 !important; box-shadow: none !important; }
+            .carnet-actions { display: none !important; }
+        }
+    </style>
+</head>
+<body style="background:#f3f3f3;">
+    <% /* Renderizado seguro de clase y color de fondo */ %>
+    <% if (!finca.logo_finca) { %>
+        <div class="alert alert-error" style="margin:10px 0;text-align:center;background:#ffeaea;color:#b71c1c;padding:0.7em 1em;border-radius:8px;">
+            <i class="fas fa-exclamation-triangle"></i> Esta finca no tiene logo. Por favor, sube un logo en la sección de edición de la finca para poder imprimir el carnet.
+        </div>
+    <% } %>
+    <div class="carnet-container<%= (typeof tipoUsuario === 'string' && tipoUsuario.trim()) ? ' ' + tipoUsuario.trim() : '' %>" style="background-color:<%= fondoColor && fondoColor.match(/^#|rgb|hsl|[a-zA-Z]/) ? fondoColor : '#fff' %>;<%= !finca.logo_finca ? 'pointer-events:none;opacity:0.6;' : '' %>">
+        <div class="carnet-header">
+            <img src="<%= usuario.foto_perfil ? ('/uploads/profiles/' + usuario.foto_perfil) : '/img/default-user.png' %>" class="carnet-foto" alt="Foto perfil" onerror="this.onerror=null;this.src='/img/default-user.png';">
+            <div class="carnet-datos">
+                <div class="carnet-nombre"><%= usuario.nombre %> <%= usuario.apellido %></div>
+                <div><span class="carnet-label">Cédula:</span> <%= usuario.numero_documento %></div>
+                <div><span class="carnet-label">Ciudad usuario:</span> <%= usuario.ciudad_nombre %></div>
+                <div class="carnet-finca"><span class="carnet-label">Finca:</span> <%= finca.nombre_finca %></div>
+                <div><span class="carnet-label">Ciudad finca:</span> <%= finca.ciudad_nombre %></div>
+            </div>
+            <div class="carnet-qr">
+                <canvas id="qr-canvas"></canvas>
+            </div>
+        </div>
+        <% if (finca.logo_finca) { %>
+            <img src="/uploads/logos/<%= finca.logo_finca %>" class="carnet-logo" alt="Logo finca" onerror="this.onerror=null;this.src='/img/default-logo.png';">
+        <% } %>
+    </div>
+    <div class="carnet-actions" style="text-align:center;margin-top:1.5em;">
+        <button onclick="window.print()" class="sidebar-btn" <%= !finca.logo_finca ? 'disabled' : '' %>><i class="fas fa-print"></i> Imprimir</button>
+        <button id="btnDescargarPDF" class="sidebar-btn" <%= !finca.logo_finca ? 'disabled' : '' %>><i class="fas fa-file-pdf"></i> Descargar PDF</button>
+        <a href="/auth/dashboard" class="sidebar-btn"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Generar QR con datos básicos
+        const qrCanvas = document.getElementById('qr-canvas');
+        if (qrCanvas && typeof QRCode !== 'undefined') {
+            const qrData = `Usuario: <%= usuario.nombre %> <%= usuario.apellido %> | Finca: <%= finca.nombre_finca %> | Ciudad: <%= finca.ciudad_nombre %>`;
+            QRCode.toCanvas(qrCanvas, qrData, { width: 60, margin: 0 }, function (error) {
+                if (error) console.error(error);
+            });
+        }
+
+        // Descargar PDF
+        const btnDescargarPDF = document.getElementById('btnDescargarPDF');
+        if (btnDescargarPDF) {
+            btnDescargarPDF.addEventListener('click', function() {
+                const carnet = document.querySelector('.carnet-container');
+                if (!carnet || typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') return;
+                html2canvas(carnet).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'pt', format: [350, 220] });
+                    pdf.addImage(imgData, 'PNG', 0, 0, 350, 220);
+                    pdf.save('carnet_ganadero.pdf');
+                });
+            });
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>

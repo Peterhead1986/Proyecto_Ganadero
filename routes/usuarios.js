@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const Usuario = require('../models/Usuario');
 const Ubicacion = require('../models/Ubicacion');
 const { handleFlashMessages } = require('../middleware/auth');
+const { requireAuth } = require('../middleware/auth');
 const { uploadProfile, handleMulterError } = require('../middleware/config/multer');
 
 const router = express.Router();
@@ -38,7 +39,8 @@ router.get('/registro', async (req, res) => {
         console.error('Error cargando formulario de registro:', error);
         res.render('error', {
             title: 'Error',
-            message: 'Error cargando el formulario de registro'
+            message: 'Error cargando el formulario de registro',
+            error: error || {}
         });
     }
 });
@@ -166,7 +168,7 @@ router.post('/registro', [
         // Crear usuario
         const resultado = await Usuario.crear(datosLogin, datosPersonales);
         req.session.registro_temporal = {
-            usuario_datos_id: resultado.usuario_datos_id,
+            datos_id: resultado.usuario_datos_id, // Usar el mismo nombre de campo que espera el flujo de registro de finca
             nombre: req.body.nombre,
             apellido: req.body.apellido
         };
@@ -283,6 +285,179 @@ router.post('/validar-campo', async (req, res) => {
             success: false,
             message: 'Error validando campo'
         });
+    }
+});
+
+// Ruta: GET /usuarios/editar - Mostrar formulario de edición de usuario
+router.get('/editar', requireAuth, async (req, res) => {
+    try {
+        const estados = await Ubicacion.obtenerEstados();
+        let usuario;
+        // Si es admin y hay id en query, permite editar a otros usuarios
+        if (req.session.user && req.session.user.rol === 'admin' && req.query.id) {
+            usuario = await Usuario.buscarPorId(req.query.id);
+            if (!usuario) {
+                return res.render('editar-usuario', {
+                    title: 'Editar Datos de Usuario',
+                    error: { texto: 'Usuario no encontrado.' },
+                    usuario: {},
+                    estados
+                });
+            }
+        } else {
+            usuario = await Usuario.buscarPorId(req.session.user.datos_id);
+        }
+        res.render('editar-usuario', {
+            title: 'Editar Datos de Usuario',
+            usuario,
+            estados
+        });
+    } catch (error) {
+        console.error('Error cargando edición de usuario:', error);
+        res.render('error', {
+            title: 'Error',
+            message: 'No se pudo cargar el formulario de edición de usuario',
+            error: error || {}
+        });
+    }
+});
+
+// Ruta: POST /usuarios/editar - Procesar edición de usuario
+router.post('/editar', requireAuth, uploadProfile, handleMulterError, async (req, res) => {
+    try {
+        const datosActualizados = {
+            nombre: req.body.nombre,
+            apellido: req.body.apellido,
+            correo: req.body.correo,
+            tipo_documento: req.body.tipo_documento,
+            numero_documento: req.body.numero_documento,
+            direccion: req.body.direccion || null,
+            estado_id: parseInt(req.body.estado_id),
+            ciudad_id: req.body.ciudad_id ? parseInt(req.body.ciudad_id) : null,
+            municipio_id: req.body.municipio_id ? parseInt(req.body.municipio_id) : null,
+            parroquia_id: req.body.parroquia_id ? parseInt(req.body.parroquia_id) : null,
+            foto_perfil: req.file ? req.file.filename : req.body.foto_perfil_actual || null
+        };
+        await Usuario.actualizar(req.session.user.datos_id, datosActualizados);
+        req.session.success = {
+            tipo: 'success',
+            texto: 'Datos de usuario actualizados correctamente.'
+        };
+        res.redirect('/auth/dashboard');
+    } catch (error) {
+        console.error('Error actualizando usuario:', error);
+        res.render('editar-usuario', {
+            title: 'Editar Datos de Usuario',
+            error: { texto: 'Error actualizando los datos. Intente nuevamente.' },
+            usuario: req.body,
+            estados: await Ubicacion.obtenerEstados()
+        });
+    }
+});
+
+// Ruta: GET /usuarios/buscar - Autocompletado de usuarios para admins
+router.get('/buscar', requireAuth, async (req, res) => {
+    try {
+        // Solo admins pueden buscar otros usuarios
+        if (!req.session.user || req.session.user.rol !== 'admin') {
+            return res.status(403).json({ success: false, usuarios: [], error: 'No autorizado' });
+        }
+        const query = req.query.query || '';
+        if (!query || query.length < 2) {
+            return res.json({ success: true, usuarios: [] });
+        }
+        const usuarios = await Usuario.buscarPorTexto(query);
+        res.json({ success: true, usuarios });
+    } catch (error) {
+        console.error('Error en búsqueda de usuarios:', error);
+        res.json({ success: false, usuarios: [], error: 'Error interno' });
+    }
+});
+
+// Función auxiliar para obtener usuario y finca principal
+async function obtenerUsuarioYFinca(usuarioId) {
+    const usuario = await Usuario.buscarPorId(usuarioId);
+    if (!usuario) {
+        return { error: 'No se encontró el usuario.' };
+    }
+    const fincas = await require('../models/Finca').buscarPorUsuario(usuario.id);
+    const finca = fincas && fincas.length > 0 ? fincas[0] : null;
+    if (!finca) {
+        return { error: 'No se encontró finca asociada para el usuario.' };
+    }
+    return { usuario, finca };
+}
+
+// Ruta: GET /usuarios/carnet - Generar carnet ganadero
+router.get('/carnet', requireAuth, async (req, res) => {
+    try {
+        const { usuario, finca, error } = await obtenerUsuarioYFinca(req.session.user.datos_id);
+        if (error) {
+            return res.render('error', { title: 'Error', message: error });
+        }
+        let fondoColor = '#fff';
+        let tipoUsuario = 'usuario';
+        if (req.session.user.rol === 'admin') {
+            fondoColor = '#e3f2fd';
+            tipoUsuario = 'admin';
+        } else if (finca.tipo && finca.tipo === 'premium') {
+            fondoColor = '#fffbe6';
+            tipoUsuario = 'premium';
+        }
+        res.render('carnet', {
+            usuario: {
+                ...usuario,
+                ciudad_nombre: usuario.ciudad_nombre || '',
+            },
+            finca: {
+                ...finca,
+                ciudad_nombre: finca.ciudad_nombre || '',
+            },
+            fondoColor,
+            tipoUsuario
+        });
+    } catch (error) {
+        console.error('Error generando carnet en /usuarios/carnet:', error);
+        res.render('error', { title: 'Error', message: 'No se pudo generar el carnet', error });
+    }
+});
+
+// Ruta: GET /usuarios/carnet/:id - Generar carnet para usuario específico (admin o propio)
+router.get('/carnet/:id', requireAuth, async (req, res) => {
+    try {
+        const usuarioId = req.params.id;
+        // Solo admins pueden ver carnets de otros usuarios
+        if (req.session.user.rol !== 'admin' && String(req.session.user.datos_id) !== String(usuarioId)) {
+            return res.render('error', { title: 'No autorizado', message: 'No tienes permiso para ver el carnet de este usuario.' });
+        }
+        const { usuario, finca, error } = await obtenerUsuarioYFinca(usuarioId);
+        if (error) {
+            return res.render('error', { title: 'Error', message: error });
+        }
+        let fondoColor = '#fff';
+        let tipoUsuario = 'usuario';
+        if (req.session.user.rol === 'admin') {
+            fondoColor = '#e3f2fd';
+            tipoUsuario = 'admin';
+        } else if (finca.tipo && finca.tipo === 'premium') {
+            fondoColor = '#fffbe6';
+            tipoUsuario = 'premium';
+        }
+        res.render('carnet', {
+            usuario: {
+                ...usuario,
+                ciudad_nombre: usuario.ciudad_nombre || '',
+            },
+            finca: {
+                ...finca,
+                ciudad_nombre: finca.ciudad_nombre || '',
+            },
+            fondoColor,
+            tipoUsuario
+        });
+    } catch (error) {
+        console.error('Error generando carnet en /usuarios/carnet/:id para usuario', req.params.id, error);
+        res.render('error', { title: 'Error', message: 'No se pudo generar el carnet', error });
     }
 });
 

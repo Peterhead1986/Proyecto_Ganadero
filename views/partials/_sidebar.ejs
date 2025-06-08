@@ -1,0 +1,111 @@
+<aside class="sidebar-list sidebar-modern" tabindex="0" role="navigation" aria-label="Menú lateral">
+  <nav>
+    <ul>
+      <li><a href="/auth/dashboard" class="sidebar-btn sidebar-btn-home"><i class="fas fa-home"></i> Inicio</a></li>
+      <li><a href="/lista-usuarios" class="sidebar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
+      <li><a href="/usuarios/editar" class="sidebar-btn"><i class="fas fa-user-cog"></i> Editar Usuario</a></li>
+      <li><a href="/listado-fincas" class="sidebar-btn"><i class="fas fa-tractor"></i> Listado de Fincas</a></li>
+      <li><a href="/fincas/editar" class="sidebar-btn"><i class="fas fa-edit"></i> Editar Finca</a></li>
+      <li><a href="/cambiar-password" class="sidebar-btn"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+      <li><a href="/auth/logout" class="sidebar-btn sidebar-btn-logout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+    </ul>
+  </nav>
+</aside>
+<style>
+.sidebar-list.sidebar-modern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 64px;
+  background: #1e293b;
+  color: #fff;
+  z-index: 100;
+  box-shadow: 2px 0 12px #0002;
+  transition: width 0.25s cubic-bezier(.4,2,.6,1);
+  overflow-x: hidden;
+  padding-top: 60px;
+}
+.sidebar-list.sidebar-modern:hover,
+.sidebar-list.sidebar-modern:focus-within {
+  width: 220px;
+}
+.sidebar-list.sidebar-modern nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.sidebar-list.sidebar-modern nav ul li {
+  margin-bottom: 0.2em;
+}
+.sidebar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  background: linear-gradient(135deg, #26334d 60%, #1e293b 100%);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 22px 22px 18px 18px/18px 18px 22px 22px;
+  margin: 0.18em 0.4em;
+  padding: 0.7em 1.2em;
+  font-size: 1.05em;
+  min-height: 38px;
+  min-width: 0;
+  box-shadow: 0 2.5px 10px #0002, 0 1.5px 0 #fff3 inset;
+  transition: background 0.18s, color 0.18s, box-shadow 0.13s, transform 0.09s, border-radius 0.18s;
+  outline: none;
+  letter-spacing: 0.01em;
+  border-bottom: 2px solid #3cb34a22;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  backdrop-filter: blur(1.5px);
+  cursor: pointer;
+  user-select: none;
+}
+.sidebar-btn i {
+  font-size: 1.15em;
+  min-width: 22px;
+  text-align: center;
+}
+.sidebar-btn:hover, .sidebar-btn:focus {
+  background: linear-gradient(135deg, #334155 60%, #26334d 100%);
+  color: #3cb34a;
+  transform: translateY(-2px) scale(1.045) rotate(-2deg);
+  box-shadow: 0 4px 16px #3cb34a33, 0 2px 0 #fff6 inset;
+}
+.sidebar-btn:active {
+  background: #26334d;
+  color: #fff;
+  box-shadow: 0 1px 4px #0002;
+  transform: scale(0.98);
+}
+.sidebar-btn.sidebar-btn-home {
+  color: #3cb34a;
+}
+.sidebar-btn.sidebar-btn-logout {
+  color: #e74c3c;
+}
+.sidebar-btn.sidebar-btn-logout:hover, .sidebar-btn.sidebar-btn-logout:focus {
+  color: #fff;
+  background: linear-gradient(135deg, #e74c3c 60%, #b71c1c 100%);
+  box-shadow: 0 4px 16px #e74c3c55, 0 2px 0 #fff6 inset;
+}
+@media (max-width: 900px) {
+  .sidebar-list.sidebar-modern {
+    width: 100vw;
+    min-height: unset;
+    height: auto;
+    position: static;
+    padding-top: 0;
+  }
+  .sidebar-btn {
+    padding: 0.7em 1em;
+    font-size: 1em;
+  }
+}
+</style>
