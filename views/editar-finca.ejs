@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Finca</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <%- include('partials/_header') %>
+    <div class="container">
+        <div class="form-header">
+            <div class="logo-section">
+                <h1><i class="fas fa-warehouse"></i> Editar Finca</h1>
+                <p>Modifica los datos de la finca seleccionada</p>
+            </div>
+        </div>
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-warehouse"></i> Información de la Finca</h2>
+                    <p>Actualiza los datos de tu finca o granja</p>
+                </div>
+                <% if (flash && flash.error) { %>
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <%= flash.error.texto || flash.error %>
+                    </div>
+                <% } %>
+                <% if (flash && flash.success) { %>
+                    <div class="alert alert-success" id="success-alert">
+                        <i class="fas fa-check-circle"></i>
+                        <%= flash.success.texto || flash.success %>
+                    </div>
+                    <script>
+                        setTimeout(function() {
+                            var alert = document.getElementById('success-alert');
+                            if(alert) alert.style.display = 'none';
+                        }, 10000); // 10 segundos
+                    </script>
+                <% } %>
+                <form action="/fincas/<%= finca.id %>/editar" method="POST" enctype="multipart/form-data" class="registro-form" id="fincaEditForm">
+                    <div class="card-body">
+                        <div class="form-section">
+                            <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
+                            <div class="form-group">
+                                <label for="nombre_finca">
+                                    <i class="fas fa-warehouse"></i>
+                                    Nombre de la Finca/Granja *
+                                </label>
+                                <input type="text" id="nombre_finca" name="nombre_finca" class="form-control" value="<%= finca.nombre_finca %>" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="direccion_finca">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Dirección de la Finca
+                                </label>
+                                <textarea id="direccion_finca" name="direccion_finca" class="form-control" rows="3"><%= finca.direccion_finca %></textarea>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3><i class="fas fa-map-pin"></i> Coordenadas Geográficas</h3>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="latitud">
+                                            <i class="fas fa-compass"></i>
+                                            Latitud
+                                        </label>
+                                        <input type="number" id="latitud" name="latitud" class="form-control" step="0.000001" min="-90" max="90" value="<%= finca.latitud %>" placeholder="Ej: 10.123456">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="longitud">
+                                            <i class="fas fa-compass"></i>
+                                            Longitud
+                                        </label>
+                                        <input type="number" id="longitud" name="longitud" class="form-control" step="0.000001" min="-180" max="180" value="<%= finca.longitud %>" placeholder="Ej: -66.123456">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3><i class="fas fa-map"></i> Ubicación Administrativa</h3>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="estado_id">
+                                            <i class="fas fa-map"></i>
+                                            Estado *
+                                        </label>
+                                        <select id="estado_id" name="estado_id" class="form-control" required>
+                                            <% estados.forEach(estado => { %>
+                                                <option value="<%= estado.id %>" <%= finca.estado_id == estado.id ? 'selected' : '' %>><%= estado.nombre %></option>
+                                            <% }) %>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="ciudad_id">
+                                            <i class="fas fa-city"></i>
+                                            Ciudad
+                                        </label>
+                                        <select id="ciudad_id" name="ciudad_id" class="form-control">
+                                            <% ciudades.forEach(ciudad => { %>
+                                                <option value="<%= ciudad.id %>" <%= finca.ciudad_id == ciudad.id ? 'selected' : '' %>><%= ciudad.nombre %></option>
+                                            <% }) %>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="municipio_id">
+                                            <i class="fas fa-building"></i>
+                                            Municipio
+                                        </label>
+                                        <select id="municipio_id" name="municipio_id" class="form-control">
+                                            <% municipios.forEach(municipio => { %>
+                                                <option value="<%= municipio.id %>" <%= finca.municipio_id == municipio.id ? 'selected' : '' %>><%= municipio.nombre %></option>
+                                            <% }) %>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="parroquia_id">
+                                            <i class="fas fa-church"></i>
+                                            Parroquia
+                                        </label>
+                                        <select id="parroquia_id" name="parroquia_id" class="form-control">
+                                            <% parroquias.forEach(parroquia => { %>
+                                                <option value="<%= parroquia.id %>" <%= finca.parroquia_id == parroquia.id ? 'selected' : '' %>><%= parroquia.nombre %></option>
+                                            <% }) %>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3><i class="fas fa-image"></i> Logo de la Finca</h3>
+                            <div class="form-group">
+                                <label for="logo_finca">
+                                    <i class="fas fa-upload"></i>
+                                    Logo o Imagen Representativa
+                                </label>
+                                <div class="file-upload-container">
+                                    <% if (finca.logo_finca) { %>
+                                        <div class="image-preview" id="logo-preview">
+                                            <img src="/uploads/logos/<%= finca.logo_finca %>" alt="Logo actual" style="max-width:100px;max-height:100px;border-radius:8px;">
+                                            <div class="logo-info">
+                                                <p><strong>Logo actual:</strong> <%= finca.logo_finca %></p>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                    <input type="file" id="logo_finca" name="logo_finca" accept="image/*" class="file-input">
+                                    <label for="logo_finca" class="file-label">
+                                        <i class="fas fa-upload"></i>
+                                        Cambiar logo
+                                    </label>
+                                    <div class="file-info">
+                                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="form-actions">
+                            <a href="/listado-fincas" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Volver al Listado
+                            </a>
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-save"></i>
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <%- include('partials/_footer') %>
+    <script src="/js/ubicaciones.js"></script>
+    <script>
+        // Preview de logo
+        document.getElementById('logo_finca').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('logo-preview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa del logo" style="max-width:100px;max-height:100px;border-radius:8px;">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,40 +1,41 @@
 <!-- views/partials/_header.ejs -->
 <header>
-  <nav class="navbar">
-    <div class="container">
-      <a href="/auth/dashboard" class="navbar-brand">
-        <i class="fas fa-cow"></i> Sistema Ganadero Venezolano
-      </a>
-      <button class="navbar-toggle" aria-label="Abrir menú" onclick="document.querySelector('.navbar-nav').classList.toggle('open')">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-      </button>
-      <ul class="navbar-nav">
+  <nav class="navbar header-ambientado">
+    <div class="container navbar-center-container">
+      <ul class="navbar-nav navbar-center">
         <li>
-          <a href="/auth/dashboard" class="navbar-btn-home">
-            <i class="fas fa-home"></i> Inicio
-          </a>
+          <a href="/auth/dashboard" class="navbar-btn-home"><i class="fas fa-home"></i> Inicio</a>
         </li>
-        <li><a href="/listado-fincas" class="navbar-btn">Listado de fincas</a></li>
-        <li><a href="/usuarios/registro" class="navbar-btn">Registrar usuario</a></li>
-        <% if (usuario && usuario.rol === 'admin') { %>
-          <li><a href="/lista-usuarios" class="navbar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
-        <% } %>
-        <li><a href="/auth/logout" class="navbar-btn">Cerrar Sesión</a></li>
+        <li><a href="/lista-usuarios" class="navbar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
+        <li><a href="/listado-fincas" class="navbar-btn"><i class="fas fa-tractor"></i> Listado de fincas</a></li>
+        <li><a href="/auth/logout" class="navbar-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
       </ul>
-      <% if (usuario && usuario.nombre) { %>
-        <div class="navbar-user">
-          <i class="fas fa-user-circle"></i>
-          <span><%= usuario.nombre %> <%= usuario.apellido || '' %></span>
+      <% const usuarioHeader = typeof usuario !== 'undefined' && usuario ? usuario : (typeof user !== 'undefined' && user ? user : null); %>
+      <% if (usuarioHeader && usuarioHeader.nombre) { %>
+        <div class="navbar-user navbar-user-dropdown" tabindex="0">
+          <% if (usuarioHeader.foto_perfil) { %>
+            <img src="/uploads/profiles/<%= usuarioHeader.foto_perfil %>" alt="Avatar" class="navbar-avatar" />
+          <% } else { %>
+            <span class="navbar-avatar-placeholder"><i class="fas fa-user-circle"></i></span>
+          <% } %>
+          <span class="navbar-user-name"><%= usuarioHeader.nombre %> <%= usuarioHeader.apellido || '' %></span>
+          <% if (usuarioHeader.rol === 'admin') { %>
+            <span class="navbar-admin-badge" title="Administrador"><i class="fas fa-crown"></i> Admin</span>
+          <% } %>
+          <span class="navbar-dropdown-arrow"><i class="fas fa-chevron-down"></i></span>
+          <div class="navbar-user-menu" tabindex="-1">
+            <a href="/usuarios/perfil" tabindex="0"><i class="fas fa-id-badge"></i> Ver perfil</a>
+            <a href="/usuarios/cambiar-password" tabindex="0"><i class="fas fa-key"></i> Cambiar contraseña</a>
+            <a href="/auth/logout" tabindex="0"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+          </div>
         </div>
       <% } %>
     </div>
   </nav>
 </header>
 <style>
-  .navbar {
-    background: linear-gradient(rgba(60,180,75,0.7), rgba(60,180,75,0.7)), url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=1200&q=80') center/cover no-repeat;
+  .header-ambientado {
+    background: linear-gradient(90deg, #3cb34a 60%, #1e293b 100%);
     color: #fff;
     padding: 10px 0;
     box-shadow: 0 2px 8px #0002;
@@ -42,83 +43,203 @@
     border-bottom: 3px solid #ffd700;
   }
   .navbar .container { display: flex; justify-content: space-between; align-items: center; position: relative; }
-  .navbar-brand { color: #fff; font-weight: bold; text-decoration: none; font-size: 1.4em; display: flex; align-items: center; gap: 0.5em; text-shadow: 1px 1px 6px #000a; }
-  .navbar-brand i { color: #ffd700; font-size: 1.2em; }
-  .navbar-nav { list-style: none; display: flex; gap: 1.5em; margin: 0; padding: 0; transition: max-height 0.3s; }
-  .navbar-nav li { display: inline; }
-  .navbar-nav a { color: #fff; text-decoration: none; font-weight: 500; transition: color 0.2s; text-shadow: 1px 1px 4px #000a; }
-  .navbar-nav a:hover { color: #ffd700; }
-  .navbar-user { display: flex; align-items: center; gap: 0.5em; background: #1b2836cc; padding: 6px 14px; border-radius: 20px; font-size: 1em; margin-left: 1em; box-shadow: 0 2px 8px #0002; }
-  .navbar-user i { color: #ffd700; font-size: 1.2em; }
-  .navbar-toggle { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; margin-left: 1em; }
-  .navbar-toggle .bar { width: 24px; height: 3px; background: #fff; border-radius: 2px; display: block; }
-  .navbar-nav a.navbar-btn,
-  .navbar-nav a.navbar-btn-home {
-    background: var(--primary-green, #3cb34a);
-    color: #fff;
-    border-radius: 22px 22px 18px 18px/18px 18px 22px 22px;
+  .navbar-center-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    position: relative;
+  }
+  .navbar-center {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.7em;
+    flex: 1;
+  }
+  .navbar-btn, .navbar-btn-home {
+    font-size: 0.85em !important;
+    min-height: 26px !important;
+    padding: 0.18em 0.7em !important;
+    margin-right: 0.15em !important;
+    border-radius: 18px 18px 14px 14px/14px 14px 18px 18px !important;
+  }
+  .navbar-btn i, .navbar-btn-home i {
+    font-size: 1em !important;
+    margin-right: 0.18em !important;
+  }
+  .navbar-user-dropdown {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+    transition: box-shadow 0.2s;
+    margin-left: 1.2em;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .navbar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffd700;
+    background: #fff;
+    margin-right: 0.4em;
+  }
+  .navbar-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #243447;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffd700;
+    font-size: 1.3em;
+    margin-right: 0.4em;
+  }
+  .navbar-user-name {
     font-weight: 500;
-    box-shadow: 0 2px 8px #0002, 0 1.5px 0 #2e7d32 inset;
-    border: 1.5px solid #2e7d32;
-    text-shadow: 1px 1px 4px #000a;
+    color: #fff;
+    margin-right: 0.4em;
+    font-size: 0.98em;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .navbar-admin-badge {
+    background: linear-gradient(90deg, #ffd700 60%, #fffbe6 100%);
+    color: #b8860b;
+    font-weight: bold;
+    border-radius: 12px;
+    padding: 2px 8px 2px 6px;
+    font-size: 0.85em;
+    margin-right: 0.4em;
     display: inline-flex;
     align-items: center;
-    gap: 0.45em;
-    padding: 0.32em 0.95em;
-    margin-right: 0.3em;
+    gap: 0.2em;
+    box-shadow: 0 2px 8px #ffd70033;
+  }
+  .navbar-admin-badge i {
+    color: #ffd700;
+    margin-right: 2px;
+  }
+  .navbar-dropdown-arrow {
+    color: #fff;
+    font-size: 1em;
+    margin-left: 0.1em;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+  }
+  .navbar-user-dropdown.open .navbar-dropdown-arrow {
+    transform: rotate(180deg);
+  }
+  .navbar-user-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 110%;
+    min-width: 170px;
+    background: #fff;
+    color: #222c36;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px #0003;
+    z-index: 100;
+    padding: 0.5em 0;
+    animation: fadeInMenu 0.25s cubic-bezier(.4,2,.6,1);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s;
+  }
+  .navbar-user-dropdown.open .navbar-user-menu {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  @keyframes fadeInMenu {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .navbar-user-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.7em;
+    padding: 0.7em 1.2em;
+    color: #222c36;
+    text-decoration: none;
+    font-weight: 500;
     font-size: 0.98em;
-    min-height: 32px;
-    min-width: 0;
-    transition: background 0.18s, box-shadow 0.18s, transform 0.09s, border-radius 0.18s;
-    letter-spacing: 0.01em;
-    border-bottom: 2.5px solid #ffd700;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    backdrop-filter: blur(2px);
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    background: none;
   }
-  .navbar-nav a.navbar-btn-home {
-    background: var(--primary-green, #3cb34a);
-    color: #fff;
-    font-weight: bold;
-    border: 1.5px solid #2e7d32;
-    box-shadow: 0 2px 12px #3cb34a55, 0 1.5px 0 #fff6 inset;
-  }
-  .navbar-nav a.navbar-btn:hover,
-  .navbar-nav a.navbar-btn-home:hover {
-    background: #2e7d32;
-    color: #fff;
-    transform: translateY(-1.5px) scale(1.045) rotate(-2deg);
-    box-shadow: 0 4px 16px #3cb34a99, 0 2px 0 #fff6 inset;
-    border-radius: 28px 18px 28px 18px/18px 28px 18px 28px;
-    border-color: #2e7d32;
-  }
-  .navbar-nav a.navbar-btn-home i {
-    font-size: 1.1em;
-    margin-right: 0.22em;
+  .navbar-user-menu a:hover, .navbar-user-menu a:focus {
+    background: #e6f9e6;
+    color: #3cb34a;
+    outline: none;
   }
   @media (max-width: 900px) {
-    .navbar-nav { gap: 1em; }
-    .navbar-user { font-size: 0.95em; padding: 5px 10px; }
+    .navbar-center { gap: 0.4em; }
+    .navbar-btn, .navbar-btn-home { font-size: 0.8em !important; min-height: 22px !important; padding: 0.12em 0.5em !important; }
+    .navbar-user-dropdown { font-size: 0.92em; padding: 4px 7px; }
+    .navbar-user-menu { min-width: 120px; }
   }
   @media (max-width: 700px) {
-    .navbar .container { flex-wrap: wrap; }
-    .navbar-toggle { display: flex; }
-    .navbar-nav { flex-direction: column; position: absolute; top: 100%; right: 0; background: #243447ee; width: 180px; max-height: 0; overflow: hidden; box-shadow: 0 4px 12px #0003; border-radius: 0 0 8px 8px; z-index: 10; }
-    .navbar-nav.open { max-height: 400px; padding: 10px 0; }
-    .navbar-nav li { display: block; margin: 0; }
-    .navbar-user { margin: 10px 0 0 0; }
+    .navbar-center-container { flex-wrap: wrap; }
+    .navbar-center { flex-direction: column; gap: 0.2em; }
+    .navbar-user-dropdown { margin: 10px 0 0 0; }
   }
 </style>
 <script>
-  // Cierra el menú móvil al hacer clic fuera
-  document.addEventListener('click', function(e) {
-    const nav = document.querySelector('.navbar-nav');
-    const toggle = document.querySelector('.navbar-toggle');
-    if (nav && toggle && nav.classList.contains('open')) {
-      if (!nav.contains(e.target) && !toggle.contains(e.target)) {
-        nav.classList.remove('open');
+  // Menú desplegable usuario
+  (function() {
+    document.addEventListener('DOMContentLoaded', function() {
+      var navUser = document.querySelector('.navbar-user-dropdown');
+      if (!navUser) return;
+      var menu = navUser.querySelector('.navbar-user-menu');
+      var arrow = navUser.querySelector('.navbar-dropdown-arrow');
+      function openMenu() {
+        navUser.classList.add('open');
+        menu.setAttribute('aria-expanded', 'true');
       }
-    }
-  });
+      function closeMenu() {
+        navUser.classList.remove('open');
+        menu.setAttribute('aria-expanded', 'false');
+      }
+      navUser.addEventListener('click', function(e) {
+        e.stopPropagation();
+        navUser.classList.toggle('open');
+        if (navUser.classList.contains('open')) {
+          menu.setAttribute('aria-expanded', 'true');
+        } else {
+          menu.setAttribute('aria-expanded', 'false');
+        }
+      });
+      navUser.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navUser.classList.toggle('open');
+          if (navUser.classList.contains('open')) {
+            menu.setAttribute('aria-expanded', 'true');
+          } else {
+            menu.setAttribute('aria-expanded', 'false');
+          }
+        } else if (e.key === 'Escape') {
+          closeMenu();
+          navUser.blur();
+        }
+      });
+      document.addEventListener('click', function(e) {
+        if (!navUser.contains(e.target)) closeMenu();
+      });
+      navUser.addEventListener('focusout', function(e) {
+        if (!navUser.contains(e.relatedTarget)) closeMenu();
+      });
+    });
+  })();
 </script>

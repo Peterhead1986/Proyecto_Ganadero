@@ -247,6 +247,26 @@
     transform: none;
 }
 
+/* Botón de "Olvidé mi contraseña" */
+.btn-forgot-password {
+    font-size: 0.95rem !important;
+    padding: 0.4em 1.2em !important;
+    margin-top: 0.5em;
+    margin-left: 0.5em;
+    background-color: #3cb34a !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+    border: none !important;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.btn-forgot-password:hover {
+    background-color: #2a8c36 !important;
+}
+
 /* Acciones adicionales */
 .additional-actions {
     padding: 0 2rem 2rem;

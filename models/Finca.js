@@ -147,6 +147,40 @@ class Finca {
         );
         return { fincas, total };
     }
+
+    // Actualizar finca existente
+    static async actualizar(id, datosFinca) {
+        try {
+            const result = await executeQuery(`
+                UPDATE fincas_datos SET
+                    nombre_finca = ?,
+                    direccion_finca = ?,
+                    latitud = ?,
+                    longitud = ?,
+                    estado_id = ?,
+                    ciudad_id = ?,
+                    municipio_id = ?,
+                    parroquia_id = ?,
+                    logo_finca = ?
+                WHERE id = ?
+            `, [
+                datosFinca.nombre_finca,
+                datosFinca.direccion_finca,
+                datosFinca.latitud || null,
+                datosFinca.longitud || null,
+                datosFinca.estado_id || null,
+                datosFinca.ciudad_id || null,
+                datosFinca.municipio_id || null,
+                datosFinca.parroquia_id || null,
+                datosFinca.logo_finca || null,
+                id
+            ]);
+            return result.affectedRows > 0;
+        } catch (error) {
+            console.error('Error actualizando finca:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Finca;

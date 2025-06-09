@@ -5,7 +5,7 @@ const { body, validationResult } = require('express-validator');
 const Finca = require('../models/Finca');
 const Ubicacion = require('../models/Ubicacion');
 const Usuario = require('../models/Usuario');
-const { requireAuth, handleFlashMessages, checkResourceOwnership } = require('../middleware/auth');
+const { requireAuth, checkResourceOwnership } = require('../middleware/auth');
 const { uploadLogo, handleMulterError } = require('../middleware/config/multer');
 
 const router = express.Router();
@@ -21,15 +21,19 @@ function requireAdmin(req, res, next) {
     next();
 }
 
-// Aplicar middleware de mensajes flash
-router.use(handleFlashMessages);
-
 // Ruta: GET /fincas/registro - Mostrar formulario de registro de finca (admin puede pasar usuario_id)
-router.get('/registro', requireAuth, async (req, res) => {
+router.get('/registro', requireAuth, async (req, res, next) => {
+    // Solo admins pueden registrar fincas para otros usuarios
+    if (req.query.usuario_id && (!req.session.user || req.session.user.rol !== 'admin')) {
+        return res.status(403).render('error', {
+            title: 'Acceso denegado',
+            message: 'Solo los administradores pueden registrar fincas para otros usuarios.'
+        });
+    }
+    next();
+}, async (req, res) => {
     try {
         const estados = await Ubicacion.obtenerEstados();
-        const success = req.session.success;
-        delete req.session.success;
         let usuario = null;
         let usuario_id = req.query.usuario_id;
         // LOG de depuración para ver qué llega desde la lista de usuarios
@@ -72,8 +76,7 @@ router.get('/registro', requireAuth, async (req, res) => {
             title: 'Registro de Finca - Sistema Ganadero',
             estados: estados,
             usuario: usuario,
-            usuario_id: usuario_id,
-            success: success
+            usuario_id: usuario_id
         });
     } catch (error) {
         console.error('Error cargando formulario de registro de finca:', error);
@@ -86,7 +89,16 @@ router.get('/registro', requireAuth, async (req, res) => {
 });
 
 // Ruta: POST /fincas/registro - Procesar registro de finca (admin puede asignar usuario)
-router.post('/registro', [
+router.post('/registro', requireAuth, async (req, res, next) => {
+    // Solo admins pueden crear fincas para otros usuarios
+    if (req.body.usuario_id && (!req.session.user || req.session.user.rol !== 'admin')) {
+        return res.status(403).render('error', {
+            title: 'Acceso denegado',
+            message: 'Solo los administradores pueden registrar fincas para otros usuarios.'
+        });
+    }
+    next();
+}, [
     uploadLogo,
     handleMulterError,
     // Validaciones
@@ -312,158 +324,123 @@ router.get('/:id', requireAuth, checkResourceOwnership('finca'), async (req, res
     }
 });
 
-// Ruta: GET /fincas/:id/editar - Mostrar formulario de edición
-router.get('/:id/editar', requireAuth, checkResourceOwnership('finca'), async (req, res) => {
+// Ruta: GET /fincas/:id/editar - Mostrar formulario de edición de finca
+router.get('/:id/editar', requireAuth, requireAdmin, async (req, res) => {
     try {
-        const fincaId = req.params.id;
-        const finca = await Finca.buscarPorId(fincaId);
-        const estados = await Ubicacion.obtenerEstados();
-        
-        if (!finca) {
-            req.session.error = {
-                tipo: 'error',
-                texto: 'Finca no encontrada'
-            };
-            return res.redirect('/fincas/mis-fincas');
+        const fincaId = parseInt(req.params.id);
+        if (isNaN(fincaId) || fincaId < 1) {
+            return res.status(400).render('error', {
+                title: 'Error',
+                message: 'ID de finca inválido.'
+            });
         }
-        
+        const finca = (await Finca.obtenerListadoCompleto()).find(f => f.id === fincaId);
+        if (!finca) {
+            return res.status(404).render('error', {
+                title: 'Finca no encontrada',
+                message: 'No existe una finca con ese ID.'
+            });
+        }
+        const estados = await Ubicacion.obtenerEstados();
+        // Cargar ciudades, municipios y parroquias para selects
+        const ciudades = await Ubicacion.obtenerCiudadesPorEstado(finca.estado_id);
+        const municipios = await Ubicacion.obtenerMunicipiosPorEstado(finca.estado_id);
+        const parroquias = await Ubicacion.obtenerParroquiasPorMunicipio(finca.municipio_id);
+        console.log('GET - Mensaje de éxito en sesión antes de render:', req.session.success);
         res.render('editar-finca', {
-            title: `Editar ${finca.nombre_finca} - Sistema Ganadero`,
-            finca: finca,
-            estados: estados
+            title: 'Editar Finca',
+            finca,
+            estados,
+            ciudades,
+            municipios,
+            parroquias,
+            success: req.session.success,
+            error: req.session.error
         });
-        
+        console.log('GET - Mensaje de éxito en sesión después de render:', req.session.success);
+        delete req.session.success;
+        delete req.session.error;
     } catch (error) {
-        console.error('Error cargando formulario de edición:', error);
-        req.session.error = {
-            tipo: 'error',
-            texto: 'Error cargando el formulario de edición'
-        };
-        res.redirect('/fincas/mis-fincas');
+        console.error('Error mostrando formulario de edición de finca:', error);
+        res.render('error', {
+            title: 'Error',
+            message: 'Error mostrando el formulario de edición de finca',
+            error: error || {}
+        });
     }
 });
 
-// Ruta: POST /fincas/:id/editar - Procesar edición de finca
-router.post('/:id/editar', [
-    requireAuth,
-    checkResourceOwnership('finca'),
-    uploadLogo,
-    handleMulterError,
-    // Mismas validaciones que en registro
-    body('nombre_finca')
-        .trim()
-        .notEmpty()
-        .withMessage('El nombre de la finca es requerido')
-        .isLength({ min: 2, max: 150 })
-        .withMessage('El nombre de la finca debe tener entre 2 y 150 caracteres'),
-    
-    body('direccion_finca')
-        .optional()
-        .trim()
-        .isLength({ max: 500 })
-        .withMessage('La dirección no puede exceder 500 caracteres'),
-    
-    body('latitud')
-        .optional()
-        .isFloat({ min: -90, max: 90 })
-        .withMessage('La latitud debe estar entre -90 y 90'),
-    
-    body('longitud')
-        .optional()
-        .isFloat({ min: -180, max: 180 })
-        .withMessage('La longitud debe estar entre -180 y 180'),
-    
-    body('estado_id')
-        .notEmpty()
-        .withMessage('Debe seleccionar un estado')
-        .isInt({ min: 1 })
-        .withMessage('Estado inválido')
-], async (req, res) => {
+// Ruta: POST /fincas/:id/editar - Procesar edición de finca (optimizada y validada)
+router.post('/:id/editar', requireAuth, requireAdmin, uploadLogo, handleMulterError, async (req, res) => {
     try {
-        const fincaId = req.params.id;
-        
-        // Validar errores
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            const finca = await Finca.buscarPorId(fincaId);
-            const estados = await Ubicacion.obtenerEstados();
-            
-            return res.render('editar-finca', {
-                title: `Editar ${finca.nombre_finca} - Sistema Ganadero`,
-                error: {
-                    tipo: 'error',
-                    texto: errors.array()[0].msg
-                },
-                finca: finca,
-                estados: estados,
-                formData: req.body
+        const fincaId = parseInt(req.params.id);
+        if (isNaN(fincaId) || fincaId < 1) {
+            return res.status(400).render('error', {
+                title: 'Error',
+                message: 'ID de finca inválido.'
             });
         }
-
-        const {
-            nombre_finca, direccion_finca, latitud, longitud,
-            estado_id, ciudad_id, municipio_id, parroquia_id
-        } = req.body;
-
+        // Validar existencia de la finca
+        const fincaActual = (await Finca.obtenerListadoCompleto()).find(f => f.id === fincaId);
+        if (!fincaActual) {
+            return res.status(404).render('error', {
+                title: 'Finca no encontrada',
+                message: 'No existe una finca con ese ID.'
+            });
+        }
+        // Validar campos obligatorios
+        if (!req.body.nombre_finca || req.body.nombre_finca.length < 2) {
+            req.session.error = { texto: 'El nombre de la finca es obligatorio y debe tener al menos 2 caracteres.' };
+            return res.redirect(`/fincas/${fincaId}/editar`);
+        }
+        if (!req.body.estado_id || isNaN(parseInt(req.body.estado_id))) {
+            req.session.error = { texto: 'Debe seleccionar un estado válido.' };
+            return res.redirect(`/fincas/${fincaId}/editar`);
+        }
         // Validar ubicaciones
         const validacionUbicacion = await Ubicacion.validarJerarquia(
-            estado_id, ciudad_id, municipio_id, parroquia_id
+            req.body.estado_id, req.body.ciudad_id, req.body.municipio_id, req.body.parroquia_id
         );
-
         if (!validacionUbicacion.valido) {
-            const finca = await Finca.buscarPorId(fincaId);
-            const estados = await Ubicacion.obtenerEstados();
-            
-            return res.render('editar-finca', {
-                title: `Editar ${finca.nombre_finca} - Sistema Ganadero`,
-                error: {
-                    tipo: 'error',
-                    texto: validacionUbicacion.mensaje
-                },
-                finca: finca,
-                estados: estados,
-                formData: req.body
-            });
+            req.session.error = { texto: validacionUbicacion.mensaje };
+            return res.redirect(`/fincas/${fincaId}/editar`);
         }
-
         // Preparar datos actualizados
-        const datosActualizados = {
-            nombre_finca,
-            direccion_finca,
-            latitud: latitud ? parseFloat(latitud) : null,
-            longitud: longitud ? parseFloat(longitud) : null,
-            estado_id: parseInt(estado_id),
-            ciudad_id: ciudad_id ? parseInt(ciudad_id) : null,
-            municipio_id: municipio_id ? parseInt(municipio_id) : null,
-            parroquia_id: parroquia_id ? parseInt(parroquia_id) : null,
-            logo_finca: req.file ? req.file.filename : null
+        const datosFinca = {
+            nombre_finca: req.body.nombre_finca,
+            direccion_finca: req.body.direccion_finca,
+            latitud: req.body.latitud ? parseFloat(req.body.latitud) : null,
+            longitud: req.body.longitud ? parseFloat(req.body.longitud) : null,
+            estado_id: parseInt(req.body.estado_id),
+            ciudad_id: req.body.ciudad_id ? parseInt(req.body.ciudad_id) : null,
+            municipio_id: req.body.municipio_id ? parseInt(req.body.municipio_id) : null,
+            parroquia_id: req.body.parroquia_id ? parseInt(req.body.parroquia_id) : null,
+            logo_finca: req.file ? req.file.filename : fincaActual.logo_finca
         };
-
-        // Actualizar finca
-        const actualizado = await Finca.actualizar(fincaId, datosActualizados);
-
+        // Guardar en base de datos
+        const actualizado = await Finca.actualizar(fincaId, datosFinca);
         if (actualizado) {
-            req.session.success = {
-                tipo: 'success',
-                texto: 'Finca actualizada exitosamente'
-            };
-            res.redirect(`/fincas/${fincaId}`);
+            req.session.success = { texto: 'Datos guardados con éxito' };
+            console.log('POST - Mensaje de éxito en sesión:', req.session.success);
         } else {
-            throw new Error('No se pudo actualizar la finca');
+            req.session.error = { texto: 'No se realizaron cambios en la finca.' };
         }
-
+        res.redirect(`/fincas/${fincaId}/editar`);
     } catch (error) {
         console.error('Error actualizando finca:', error);
-        req.session.error = {
-            tipo: 'error',
-            texto: 'Error actualizando la finca'
-        };
-        res.redirect('/fincas/mis-fincas');
+        req.session.error = { texto: 'Error actualizando la finca.' };
+        res.redirect(`/fincas/${req.params.id}/editar`);
     }
 });
 
 // Ruta: DELETE /fincas/:id - Eliminar finca
-router.delete('/:id', requireAuth, checkResourceOwnership('finca'), async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res, next) => {
+    if (req.session.user && req.session.user.rol === 'admin') {
+        return next();
+    }
+    // Si no es admin, solo puede eliminar si es propietario
+    return checkResourceOwnership('finca')(req, res, next);
+}, async (req, res) => {
     try {
         const fincaId = req.params.id;
         const eliminado = await Finca.eliminar(fincaId);
@@ -486,6 +463,34 @@ router.delete('/:id', requireAuth, checkResourceOwnership('finca'), async (req, 
             success: false,
             message: 'Error interno del servidor'
         });
+    }
+});
+
+// Ruta: POST /fincas/:id/eliminar - Eliminar finca (compatibilidad con formularios clásicos)
+router.post('/:id/eliminar', requireAuth, checkResourceOwnership('finca'), async (req, res) => {
+    try {
+        const fincaId = req.params.id;
+        const eliminado = await Finca.eliminar(fincaId);
+        if (eliminado) {
+            req.session.success = {
+                tipo: 'success',
+                texto: 'Finca eliminada exitosamente'
+            };
+            return res.redirect('/listado-fincas');
+        } else {
+            req.session.error = {
+                tipo: 'error',
+                texto: 'No se pudo eliminar la finca'
+            };
+            return res.redirect('/listado-fincas');
+        }
+    } catch (error) {
+        console.error('Error eliminando finca (POST):', error);
+        req.session.error = {
+            tipo: 'error',
+            texto: 'Error interno del servidor'
+        };
+        return res.redirect('/listado-fincas');
     }
 });
 

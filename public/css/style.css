@@ -334,9 +334,13 @@ textarea.form-control {
 }
 
 .alert-success {
-    background: rgba(39, 174, 96, 0.1);
-    color: var(--success);
-    border-left-color: var(--success);
+    background: #e6ffe6 !important; /* Verde claro fuerte */
+    color: #c0392b !important;      /* Rojo fuerte para el texto */
+    border-left: 6px solid #27ae60 !important;
+    font-size: 1.15em;
+    font-weight: bold;
+    box-shadow: 0 2px 12px #27ae6022;
+    z-index: 1000;
 }
 
 .alert-error,

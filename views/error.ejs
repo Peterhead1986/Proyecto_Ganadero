@@ -25,6 +25,9 @@
         <% } %>
         <a href="/">Volver al inicio</a>
     </div>
+    <% if (flash && flash.error) { %>
+      <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+    <% } %>
     <%- include('partials/_footer') %>
 </body>
 </html>

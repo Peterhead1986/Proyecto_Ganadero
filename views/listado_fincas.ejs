@@ -46,6 +46,16 @@
                 </select>
                 <button type="submit" class="sidebar-btn" style="padding:0.25em 0.7em;"><i class="fas fa-search"></i> Buscar</button>
             </form>
+            <% if (flash && flash.success) { %>
+              <div class="alert alert-success" id="alert-success-finca" style="margin-bottom:1em;">
+                <i class="fas fa-check-circle"></i> <%= flash.success.texto || flash.success %>
+              </div>
+            <% } %>
+            <% if (flash && flash.error) { %>
+              <div class="alert alert-error" style="margin-bottom:1em;">
+                <i class="fas fa-exclamation-triangle"></i> <%= flash.error.texto || flash.error %>
+              </div>
+            <% } %>
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -65,7 +75,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% if (fincas && fincas.length > 0) { %>
+                    <% if (Array.isArray(fincas) && fincas.length > 0) { %>
                         <% fincas.forEach(function(finca) { %>
                             <tr>
                                 <td>
@@ -97,10 +107,10 @@
                                     <% } %>
                                 </td>
                                 <td>
-                                    <a href="/fincas/<%= finca.id %>/editar" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> Editar</a>
-                                    <form action="/fincas/<%= finca.id %>?_method=DELETE" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar esta finca?');">
-                                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Eliminar</button>
-                                    </form>
+                                    <% if (usuario && usuario.rol === 'admin') { %>
+                                        <a href="/fincas/<%= finca.id %>/editar" class="btn-editar-finca-3d"><i class="fas fa-edit"></i> Editar</a>
+                                        <button type="button" class="btn-eliminar-finca-3d" onclick="eliminarFinca('<%= finca.id %>', this)"><i class="fas fa-trash"></i> Eliminar</button>
+                                    <% } %>
                                 </td>
                             </tr>
                         <% }) %>
@@ -114,10 +124,12 @@
             <div style="margin-top:1em;text-align:center;">
                 <% for(let i=1; i<=totalPaginas; i++) { %>
                     <a href="/listado-fincas?pagina=<%= i %>&filtro=<%= filtro %>&estado_id=<%= estado_id %>&ciudad_id=<%= ciudad_id %>&municipio_id=<%= municipio_id %>&parroquia_id=<%= parroquia_id %>"
-                       class="sidebar-btn<%= (i==pagina ? ' active' : '') %>"
-                       style="margin:0 2px;<%= (i==pagina ? 'background:#3cb34a;color:#fff;' : '') %>"><%= i %></a>
+                       class="sidebar-btn<%= (i==pagina ? ' active' : '') %>"><%= i %></a>
                 <% } %>
             </div>
+            <% if (usuario && usuario.rol === 'admin') { %>
+            <!-- Botón 'Registrar Nueva Finca' eliminado temporalmente -->
+            <% } %>
             <a href="/auth/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
         </div>
       </main>
@@ -178,6 +190,104 @@
     if(estadoSel && estadoSel.value) cargarCiudades(estadoSel.value, ciudadIdPrev);
     if(ciudadSel && ciudadSel.value) cargarMunicipios(ciudadSel.value, municipioIdPrev);
     if(municipioSel && municipioSel.value) cargarParroquias(municipioSel.value, parroquiaIdPrev);
+    // Eliminar finca con fetch (AJAX)
+    function eliminarFinca(id, btn) {
+      if (confirm('¿Seguro que deseas eliminar esta finca?')) {
+        btn.disabled = true;
+        fetch(`/fincas/${id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            mostrarMensajeExito('Finca eliminada exitosamente');
+            setTimeout(() => location.reload(), 1200);
+          } else {
+            alert(data.message || 'No se pudo eliminar la finca');
+            btn.disabled = false;
+          }
+        })
+        .catch(() => {
+          alert('Error eliminando la finca');
+          btn.disabled = false;
+        });
+      }
+    }
+    // Mostrar mensaje de éxito visualmente
+    function mostrarMensajeExito(msg) {
+      let alert = document.getElementById('alert-success-finca');
+      if (!alert) {
+        alert = document.createElement('div');
+        alert.className = 'alert alert-success';
+        alert.id = 'alert-success-finca';
+        alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + msg;
+        document.querySelector('.container').prepend(alert);
+      } else {
+        alert.innerHTML = '<i class="fas fa-check-circle"></i> ' + msg;
+        alert.style.display = '';
+      }
+    }
     </script>
+    <style>
+    .btn-eliminar-finca-3d {
+      background: linear-gradient(90deg, #3cb34a 60%, #1e293b 100%);
+      color: #fff;
+      border: none;
+      border-radius: 18px;
+      box-shadow: 0 4px 0 #1e7e34, 0 2px 8px #0002;
+      font-weight: bold;
+      padding: 0.35em 1.1em;
+      margin: 0 0.2em;
+      font-size: 0.98em;
+      transition: transform 0.08s, box-shadow 0.08s, background 0.18s;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+    .btn-eliminar-finca-3d:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #1e7e34, 0 1px 4px #0002;
+    }
+    .btn-eliminar-finca-3d:hover, .btn-eliminar-finca-3d:focus {
+      background: linear-gradient(90deg, #1e293b 60%, #3cb34a 100%);
+      color: #fff;
+      box-shadow: 0 6px 12px #3cb34a66;
+    }
+    .btn-editar-finca-3d {
+      background: linear-gradient(90deg, #6ee7b7 60%, #fff 100%);
+      color: #1e293b;
+      border: none;
+      border-radius: 18px;
+      box-shadow: 0 4px 0 #34d399, 0 2px 8px #0002;
+      font-weight: bold;
+      padding: 0.35em 1.1em;
+      margin: 0 0.2em;
+      font-size: 0.98em;
+      transition: transform 0.08s, box-shadow 0.08s, background 0.18s;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .btn-editar-finca-3d:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #34d399, 0 1px 4px #0002;
+    }
+    .btn-editar-finca-3d:hover, .btn-editar-finca-3d:focus {
+      background: linear-gradient(90deg, #fff 60%, #6ee7b7 100%);
+      color: #1e293b;
+      box-shadow: 0 6px 12px #6ee7b766;
+    }
+    .sidebar-btn.active {
+      background: #3cb34a !important;
+      color: #fff !important;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+    </style>
 </body>
 </html>

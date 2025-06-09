@@ -4,14 +4,22 @@ const { body, validationResult } = require('express-validator');
 
 const Usuario = require('../models/Usuario');
 const Ubicacion = require('../models/Ubicacion');
-const { handleFlashMessages } = require('../middleware/auth');
 const { requireAuth } = require('../middleware/auth');
+const { checkResourceOwnership } = require('../middleware/auth');
 const { uploadProfile, handleMulterError } = require('../middleware/config/multer');
 
 const router = express.Router();
 
-// Aplicar middleware de mensajes flash
-router.use(handleFlashMessages);
+// Middleware para requerir rol admin
+function requireAdmin(req, res, next) {
+    if (!req.session.user || req.session.user.rol !== 'admin') {
+        return res.status(403).render('error', {
+            title: 'Acceso denegado',
+            message: 'Solo los administradores pueden acceder a esta función.'
+        });
+    }
+    next();
+}
 
 // Utilidad para renderizar el formulario de registro con errores y datos
 async function renderRegistroConError(res, req, mensaje) {
@@ -28,7 +36,7 @@ async function renderRegistroConError(res, req, mensaje) {
 }
 
 // Ruta: GET /usuarios/registro - Mostrar formulario de registro de usuario
-router.get('/registro', async (req, res) => {
+router.get('/registro', requireAdmin, async (req, res) => {
     try {
         const estados = await Ubicacion.obtenerEstados();
         res.render('registro-usuario', {
@@ -46,7 +54,7 @@ router.get('/registro', async (req, res) => {
 });
 
 // Ruta: POST /usuarios/registro - Procesar registro de usuario
-router.post('/registro', [
+router.post('/registro', requireAdmin, [
     uploadProfile,
     handleMulterError,
     // Validaciones
@@ -289,7 +297,19 @@ router.post('/validar-campo', async (req, res) => {
 });
 
 // Ruta: GET /usuarios/editar - Mostrar formulario de edición de usuario
-router.get('/editar', requireAuth, async (req, res) => {
+router.get('/editar', requireAuth, async (req, res, next) => {
+    if (req.session.user && req.session.user.rol === 'admin') {
+        return next();
+    }
+    // Si no es admin, solo puede editar su propio perfil
+    if (req.query.id && req.session.user.datos_id != req.query.id) {
+        return res.status(403).render('error', {
+            title: 'Acceso denegado',
+            message: 'No tiene permiso para editar este usuario.'
+        });
+    }
+    next();
+}, async (req, res) => {
     try {
         const estados = await Ubicacion.obtenerEstados();
         let usuario;
@@ -323,7 +343,19 @@ router.get('/editar', requireAuth, async (req, res) => {
 });
 
 // Ruta: POST /usuarios/editar - Procesar edición de usuario
-router.post('/editar', requireAuth, uploadProfile, handleMulterError, async (req, res) => {
+router.post('/editar', requireAuth, async (req, res, next) => {
+    if (req.session.user && req.session.user.rol === 'admin') {
+        return next();
+    }
+    // Si no es admin, solo puede editar su propio perfil
+    if (req.body.datos_id && req.session.user.datos_id != req.body.datos_id) {
+        return res.status(403).render('error', {
+            title: 'Acceso denegado',
+            message: 'No tiene permiso para editar este usuario.'
+        });
+    }
+    next();
+}, uploadProfile, handleMulterError, async (req, res) => {
     try {
         const datosActualizados = {
             nombre: req.body.nombre,
@@ -458,6 +490,171 @@ router.get('/carnet/:id', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Error generando carnet en /usuarios/carnet/:id para usuario', req.params.id, error);
         res.render('error', { title: 'Error', message: 'No se pudo generar el carnet', error });
+    }
+});
+
+// NUEVAS RUTAS RESTFUL DE EDICIÓN DE USUARIO
+// GET /usuarios/:id/editar
+router.get('/:id/editar', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Solo admin o el propio usuario pueden editar
+        if (req.session.user.rol !== 'admin' && String(req.session.user.datos_id) !== String(id)) {
+            return res.status(403).render('error', {
+                title: 'Acceso denegado',
+                message: 'No tiene permiso para editar este usuario.'
+            });
+        }
+        const estados = await Ubicacion.obtenerEstados();
+        const usuario = await Usuario.buscarPorId(id);
+        if (!usuario) {
+            return res.render('editar-usuario', {
+                title: 'Editar Usuario',
+                error: { texto: 'Usuario no encontrado.' },
+                usuario: {},
+                estados
+            });
+        }
+        res.render('editar-usuario', {
+            title: 'Editar Usuario',
+            usuario,
+            estados
+        });
+    } catch (error) {
+        console.error('Error cargando edición de usuario:', error);
+        res.render('error', {
+            title: 'Error',
+            message: 'No se pudo cargar el formulario de edición de usuario',
+            error: error || {}
+        });
+    }
+});
+
+// POST /usuarios/:id/editar
+router.post('/:id/editar', requireAuth, uploadProfile, handleMulterError, async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Solo admin o el propio usuario pueden editar
+        if (req.session.user.rol !== 'admin' && String(req.session.user.datos_id) !== String(id)) {
+            return res.status(403).render('error', {
+                title: 'Acceso denegado',
+                message: 'No tiene permiso para editar este usuario.'
+            });
+        }
+        // Validar ubicaciones
+        const { estado_id, ciudad_id, municipio_id, parroquia_id } = req.body;
+        const validacionUbicacion = await Ubicacion.validarJerarquia(
+            estado_id, ciudad_id, municipio_id, parroquia_id
+        );
+        if (!validacionUbicacion.valido) {
+            const estados = await Ubicacion.obtenerEstados();
+            return res.render('editar-usuario', {
+                title: 'Editar Usuario',
+                error: { texto: validacionUbicacion.mensaje },
+                usuario: { ...req.body, id },
+                estados
+            });
+        }
+        // Validar archivo subido (si existe)
+        if (req.file && !req.file.mimetype.startsWith('image/')) {
+            const estados = await Ubicacion.obtenerEstados();
+            return res.render('editar-usuario', {
+                title: 'Editar Usuario',
+                error: { texto: 'Solo se permiten archivos de imagen para la foto de perfil' },
+                usuario: { ...req.body, id },
+                estados
+            });
+        }
+        // Preparar datos
+        const datosActualizados = {
+            nombre: req.body.nombre,
+            apellido: req.body.apellido,
+            correo: req.body.correo,
+            tipo_documento: req.body.tipo_documento,
+            numero_documento: req.body.numero_documento,
+            direccion: req.body.direccion || null,
+            estado_id: parseInt(req.body.estado_id),
+            ciudad_id: req.body.ciudad_id ? parseInt(req.body.ciudad_id) : null,
+            municipio_id: req.body.municipio_id ? parseInt(req.body.municipio_id) : null,
+            parroquia_id: req.body.parroquia_id ? parseInt(req.body.parroquia_id) : null,
+            foto_perfil: req.file ? req.file.filename : req.body.foto_perfil_actual || null,
+            nombre_usuario: req.body.nombre_usuario
+        };
+        // Si se envía nueva contraseña y confirmación, actualizarla
+        if (req.body.password && req.body.password_confirmar && req.body.password === req.body.password_confirmar) {
+            datosActualizados.password = req.body.password;
+        }
+        await Usuario.actualizar(id, datosActualizados);
+        req.session.success = {
+            tipo: 'success',
+            texto: 'Datos de usuario actualizados correctamente.'
+        };
+        res.redirect('/lista-usuarios');
+    } catch (error) {
+        console.error('Error actualizando usuario:', error);
+        const estados = await Ubicacion.obtenerEstados();
+        res.render('editar-usuario', {
+            title: 'Editar Usuario',
+            error: { texto: 'Error actualizando los datos. Intente nuevamente.' },
+            usuario: { ...req.body, id: req.params.id },
+            estados
+        });
+    }
+});
+
+// Ruta: GET /usuarios/cambiar-password - Mostrar formulario de cambio de contraseña
+router.get('/cambiar-password', requireAuth, (req, res) => {
+    res.render('cambiar-password', {
+        title: 'Cambiar Contraseña'
+    });
+});
+
+// Ruta: POST /usuarios/cambiar-password - Procesar cambio de contraseña
+router.post('/cambiar-password', requireAuth, async (req, res) => {
+    const { contrasena_actual, nueva_contrasena, confirmar_contrasena } = req.body;
+    const errores = [];
+    // Validación básica
+    if (!contrasena_actual || !nueva_contrasena || !confirmar_contrasena) {
+        errores.push('Todos los campos son obligatorios.');
+    }
+    if (nueva_contrasena && nueva_contrasena.length < 6) {
+        errores.push('La nueva contraseña debe tener al menos 6 caracteres.');
+    }
+    if (nueva_contrasena !== confirmar_contrasena) {
+        errores.push('La confirmación de la contraseña no coincide.');
+    }
+    // Puedes agregar validaciones de fuerza aquí (ej: mayúsculas, números, etc.)
+    if (errores.length > 0) {
+        req.session.error = { texto: errores[0] };
+        return res.redirect('/usuarios/cambiar-password');
+    }
+    try {
+        // Buscar usuario actual por ID de sesión
+        const usuario = await Usuario.buscarPorNombreUsuario(req.session.user.nombre_usuario);
+        if (!usuario) {
+            req.session.error = { texto: 'Usuario no encontrado.' };
+            return res.redirect('/usuarios/cambiar-password');
+        }
+        // Verificar contraseña actual
+        const passwordOk = await Usuario.verificarPassword(contrasena_actual, usuario.password_hash);
+        if (!passwordOk) {
+            req.session.error = { texto: 'La contraseña actual es incorrecta.' };
+            return res.redirect('/usuarios/cambiar-password');
+        }
+        // Evitar que la nueva contraseña sea igual a la actual
+        const mismaPassword = await Usuario.verificarPassword(nueva_contrasena, usuario.password_hash);
+        if (mismaPassword) {
+            req.session.error = { texto: 'La nueva contraseña no puede ser igual a la actual.' };
+            return res.redirect('/usuarios/cambiar-password');
+        }
+        // Actualizar contraseña
+        await Usuario.cambiarPassword(usuario.login_id, nueva_contrasena);
+        req.session.success = { texto: 'Contraseña cambiada correctamente.' };
+        res.redirect('/auth/dashboard');
+    } catch (error) {
+        console.error('Error cambiando contraseña:', error);
+        req.session.error = { texto: 'Error interno del servidor. Intente nuevamente.' };
+        res.redirect('/usuarios/cambiar-password');
     }
 });
 

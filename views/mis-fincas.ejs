@@ -10,6 +10,12 @@
     <%- include('partials/_header') %>
     <div class="container">
         <h1>Mis Fincas</h1>
+        <% if (flash && flash.success) { %>
+          <div class="alert alert-success"><%= flash.success.texto || flash.success %></div>
+        <% } %>
+        <% if (flash && flash.error) { %>
+          <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+        <% } %>
         <% if (fincas && fincas.length > 0) { %>
             <table class="table">
                 <thead>

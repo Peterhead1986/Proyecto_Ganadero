@@ -49,6 +49,13 @@
                     </div>
                 <% } %>
 
+                <% if (flash && flash.success) { %>
+                  <div class="alert alert-success"><%= flash.success.texto || flash.success %></div>
+                <% } %>
+                <% if (flash && flash.error) { %>
+                  <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+                <% } %>
+
                 <form action="/usuarios/registro" method="POST" enctype="multipart/form-data" class="registro-form" id="registroForm">
                     <div class="card-body">
                         <div class="row">
@@ -492,5 +499,15 @@
             submitBtn.disabled = true;
         });
     </script>
+    <% if (!user || user.rol !== 'admin') { %>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('registroForm');
+        if (form) {
+          Array.prototype.forEach.call(form.elements, function(el) { el.disabled = true; });
+        }
+      });
+    </script>
+    <% } %>
 </body>
 </html>

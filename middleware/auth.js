@@ -118,11 +118,10 @@ const checkResourceOwnership = (resourceType) => {
                         message: 'No tiene permisos para acceder a este recurso'
                     });
                 } else {
-                    req.session.error = {
-                        tipo: 'error',
-                        texto: 'No tiene permisos para acceder a este recurso'
-                    };
-                    return res.redirect('/auth/dashboard');
+                    return res.status(403).render('error', {
+                        title: 'Acceso denegado',
+                        message: 'No tienes permisos para acceder a este recurso.'
+                    });
                 }
             }
 

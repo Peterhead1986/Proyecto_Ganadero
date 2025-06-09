@@ -81,6 +81,59 @@
       @media (max-width: 700px) {
         .sidebar-menu { display: none; }
       }
+      .dashboard-title-ambientado {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.2rem;
+        margin-top: 2.5rem;
+        margin-bottom: 2.5rem;
+        position: relative;
+        z-index: 2;
+        min-height: 110px;
+      }
+      .titulo-efecto {
+        font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: 2px;
+        text-shadow:
+          0 2px 12px #a8ffb0,
+          0 0 40px #baffc9,
+          0 1px 0 #222;
+        background: linear-gradient(90deg, #fff 60%, #baffc9 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        position: relative;
+        overflow: hidden;
+        animation: shine 2.2s cubic-bezier(.4,2,.6,1) 1;
+      }
+      @keyframes shine {
+        0% { background-position: -200px 0; }
+        60% { background-position: 200px 0; }
+        100% { background-position: 0 0; }
+      }
+      .icono-ganadero {
+        font-size: 2.2rem;
+        filter: drop-shadow(0 2px 8px #baffc9);
+        animation: icon-pulse 2.5s infinite alternate;
+      }
+      @keyframes icon-pulse {
+        0% { filter: drop-shadow(0 2px 8px #baffc9); }
+        100% { filter: drop-shadow(0 4px 16px #a8ffb0); }
+      }
+      .campo-silueta {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -10px;
+        width: 100%;
+        height: 80px;
+        z-index: 1;
+        pointer-events: none;
+      }
     </style>
 </head>
 <body>
@@ -90,6 +143,19 @@
       <main style="flex:1;">
         <!-- Aquí va el contenido principal del dashboard -->
         <div class="dashboard-content">
+          <% if (flash && flash.success) { %>
+            <div class="alert alert-success"><%= flash.success.texto || flash.success %></div>
+          <% } %>
+          <% if (flash && flash.error) { %>
+            <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+          <% } %>
+          <div class="dashboard-title-ambientado">
+            <span class="titulo-efecto">Sistema Ganadero Venezolano</span>
+            <svg class="campo-silueta" viewBox="0 0 600 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0,60 Q150,20 300,60 T600,60 V80 H0Z" fill="#baffc9" fill-opacity="0.25"/>
+              <path d="M0,70 Q200,40 400,70 T600,70 V80 H0Z" fill="#a8ffb0" fill-opacity="0.18"/>
+            </svg>
+          </div>
           <!-- ...contenido dinámico del dashboard... -->
         </div>
       </main>

@@ -66,6 +66,12 @@
                             <%= success.texto || success %>
                         </div>
                     <% } %>
+                    <% if (flash && flash.success) { %>
+                      <div class="alert alert-success"><%= flash.success.texto || flash.success %></div>
+                    <% } %>
+                    <% if (flash && flash.error) { %>
+                      <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+                    <% } %>
                     <form method="get" action="/lista-usuarios" style="margin-bottom:1em;display:flex;flex-wrap:wrap;gap:0.5em;align-items:center;">
                         <input type="text" name="filtro" value="<%= filtro %>" placeholder="Buscar por nombre, usuario o correo" class="form-control" style="width:220px;display:inline-block;">
                         <select name="estado_id" class="form-control" style="width:150px;">
@@ -140,20 +146,30 @@
                                             <td><%= u.creado ? u.creado.toLocaleString ? u.creado.toLocaleString() : u.creado : '' %></td>
                                             <td><%= u.actualizado ? u.actualizado.toLocaleString ? u.actualizado.toLocaleString() : u.actualizado : '' %></td>
                                             <td>
-                                                <a href="/usuarios/editar?id=<%= u.datos_id %>" class="sidebar-btn" style="padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
-                                                    <i class="fas fa-edit"></i> Editar
-                                                </a>
-                                                <a href="/usuarios/carnet/<%= u.datos_id %>" class="sidebar-btn" style="background:#3cb34a;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
-                                                    <i class="fas fa-id-card"></i> Generar Carnet
-                                                </a>
-                                                <a href="/fincas/registro?usuario_id=<%= u.datos_id %>" class="sidebar-btn" style="background:#1e88e5;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
-                                                    <i class="fas fa-tractor"></i> Registrar Finca
-                                                </a>
-                                                <form action="/lista-usuarios/eliminar/<%= u.datos_id %>" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar este usuario?');">
-                                                    <button type="submit" class="sidebar-btn" style="background:#e74c3c;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;border:none;">
-                                                        <i class="fas fa-trash"></i> Eliminar
-                                                    </button>
-                                                </form>
+                                                <% if (usuario && usuario.rol === 'admin') { %>
+                                                    <a href="/usuarios/<%= u.datos_id %>/editar" class="sidebar-btn" style="padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                        <i class="fas fa-edit"></i> Editar
+                                                    </a>
+                                                    <form action="/lista-usuarios/eliminar/<%= u.datos_id %>" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que desea eliminar este usuario?');">
+                                                        <button type="submit" class="sidebar-btn" style="background:#e74c3c;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;border:none;">
+                                                            <i class="fas fa-trash"></i> Eliminar
+                                                        </button>
+                                                    </form>
+                                                    <a href="/fincas/registro?usuario_id=<%= u.datos_id %>" class="sidebar-btn" style="background:#1e88e5;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                        <i class="fas fa-tractor"></i> Registrar Finca
+                                                    </a>
+                                                <% } else if (usuario && usuario.datos_id === u.datos_id) { %>
+                                                    <a href="/usuarios/<%= u.datos_id %>/editar" class="sidebar-btn" style="padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                        <i class="fas fa-edit"></i> Editar
+                                                    </a>
+                                                    <a href="/usuarios/carnet/<%= u.datos_id %>" class="sidebar-btn" style="background:#3cb34a;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                        <i class="fas fa-id-card"></i> Generar Carnet
+                                                    </a>
+                                                <% } else { %>
+                                                    <a href="/usuarios/carnet/<%= u.datos_id %>" class="sidebar-btn" style="background:#3cb34a;color:#fff;padding:0.25em 0.7em;font-size:0.98em;display:inline-flex;align-items:center;gap:0.4em;">
+                                                        <i class="fas fa-id-card"></i> Generar Carnet
+                                                    </a>
+                                                <% } %>
                                             </td>
                                         </tr>
                                     <% }) %>

@@ -42,10 +42,8 @@ router.get('/', requireAuth, async (req, res) => {
             estados,
             ciudades,
             municipios,
-            parroquias,
-            success: req.session.success
+            parroquias
         });
-        delete req.session.success;
     } catch (error) {
         console.error('Error listando usuarios:', error);
         res.status(500).render('error', {

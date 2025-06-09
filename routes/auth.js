@@ -2,11 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const { requireGuest, requireAuth, handleFlashMessages } = require('../middleware/auth');
+const { requireGuest, requireAuth } = require('../middleware/auth');
 const Usuario = require('../models/Usuario');
-
-// Middleware de mensajes flash
-router.use(handleFlashMessages);
 
 // Ruta: GET /auth/login - Mostrar formulario de login
 router.get('/login', requireGuest, (req, res) => {

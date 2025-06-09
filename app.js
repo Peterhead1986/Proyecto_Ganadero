@@ -40,6 +40,10 @@ app.use(session({
     }
 }));
 
+// Middleware flash robusto (debe ir después de la sesión y ANTES de las rutas)
+const flash = require('./middleware/flash');
+app.use(flash);
+
 // Middleware para hacer disponible la información de sesión en todas las vistas
 app.use((req, res, next) => {
     res.locals.usuario = req.session.user || null;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Datos de Usuario</title>
+    <title><%= title || 'Editar Usuario' %></title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/forms.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -14,8 +14,8 @@
         <div class="form-container">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-user-edit"></i> Editar Datos de Usuario</h2>
-                    <p>Actualice sus datos personales y de contacto</p>
+                    <h2><i class="fas fa-user-edit"></i> Editar Usuario</h2>
+                    <p>Modifique los datos del usuario y guarde los cambios</p>
                 </div>
                 <% if (typeof error !== 'undefined' && error) { %>
                     <div class="alert alert-error">
@@ -29,34 +29,26 @@
                         <%= success.texto || success %>
                     </div>
                 <% } %>
-                <form action="/usuarios/editar" method="POST" enctype="multipart/form-data" class="registro-form" id="editarUsuarioForm">
+                <form action="/usuarios/<%= usuario.id %>/editar" method="POST" enctype="multipart/form-data" class="registro-form" id="editarUsuarioForm">
                     <div class="card-body">
-                        <div class="search-user-bar" style="margin-bottom:1.5em;">
-                          <label for="busqueda_usuario" style="font-weight:600;display:block;margin-bottom:0.3em;">
-                            <i class="fas fa-search"></i> Buscar usuario a editar
-                          </label>
-                          <div style="position:relative;max-width:400px;">
-                            <input type="text" id="busqueda_usuario" class="form-control" placeholder="Nombre, usuario o correo..." autocomplete="off">
-                            <ul id="sugerencias_usuarios" class="autocomplete-list" style="position:absolute;top:110%;left:0;width:100%;z-index:10;background:#fff;border-radius:0 0 10px 10px;box-shadow:0 4px 16px #0002;list-style:none;padding:0;margin:0;display:none;"></ul>
-                          </div>
-                        </div>
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">
                                     <label for="nombre"><i class="fas fa-user"></i> Nombre *</label>
-                                    <input type="text" id="nombre" name="nombre" class="form-control" value="<%= usuario && usuario.nombre ? usuario.nombre : '' %>" required placeholder="Ingrese su nombre">
+                                    <input type="text" id="nombre" name="nombre" class="form-control" value="<%= usuario.nombre %>" required>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="form-group">
                                     <label for="apellido"><i class="fas fa-user"></i> Apellido *</label>
-                                    <input type="text" id="apellido" name="apellido" class="form-control" value="<%= usuario && usuario.apellido ? usuario.apellido : '' %>" required placeholder="Ingrese su apellido">
+                                    <input type="text" id="apellido" name="apellido" class="form-control" value="<%= usuario.apellido %>" required>
                                 </div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="correo"><i class="fas fa-envelope"></i> Correo Electrónico *</label>
-                            <input type="email" id="correo" name="correo" class="form-control" value="<%= usuario && usuario.correo ? usuario.correo : '' %>" required placeholder="ejemplo@correo.com">
+                            <input type="email" id="correo" name="correo" class="form-control" value="<%= usuario.correo %>" required>
+                            <div class="validation-message" id="correo-validation"></div>
                         </div>
                         <div class="row">
                             <div class="col-4">
@@ -64,21 +56,22 @@
                                     <label for="tipo_documento"><i class="fas fa-id-card"></i> Tipo de Documento *</label>
                                     <select id="tipo_documento" name="tipo_documento" class="form-control" required>
                                         <option value="">Seleccionar...</option>
-                                        <option value="cedula" <%= usuario && usuario.tipo_documento === 'cedula' ? 'selected' : '' %>>Cédula de Identidad</option>
-                                        <option value="rif_juridico" <%= usuario && usuario.tipo_documento === 'rif_juridico' ? 'selected' : '' %>>RIF Jurídico</option>
+                                        <option value="cedula" <%= usuario.tipo_documento === 'cedula' ? 'selected' : '' %>>Cédula de Identidad</option>
+                                        <option value="rif_juridico" <%= usuario.tipo_documento === 'rif_juridico' ? 'selected' : '' %>>RIF Jurídico</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-8">
                                 <div class="form-group">
                                     <label for="numero_documento"><i class="fas fa-hashtag"></i> Número de Documento *</label>
-                                    <input type="text" id="numero_documento" name="numero_documento" class="form-control" value="<%= usuario && usuario.numero_documento ? usuario.numero_documento : '' %>" required placeholder="Ej: 12345678 o J-12345678-9">
+                                    <input type="text" id="numero_documento" name="numero_documento" class="form-control" value="<%= usuario.numero_documento %>" required>
+                                    <div class="validation-message" id="documento-validation"></div>
                                 </div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="direccion"><i class="fas fa-map-marker-alt"></i> Dirección</label>
-                            <textarea id="direccion" name="direccion" class="form-control" rows="3" placeholder="Ingrese su dirección completa"><%= usuario && usuario.direccion ? usuario.direccion : '' %></textarea>
+                            <textarea id="direccion" name="direccion" class="form-control" rows="3"><%= usuario.direccion || '' %></textarea>
                         </div>
                         <div class="form-section">
                             <h3><i class="fas fa-map"></i> Ubicación</h3>
@@ -90,7 +83,7 @@
                                             <option value="">Seleccionar estado...</option>
                                             <% if (typeof estados !== 'undefined' && estados) { %>
                                                 <% estados.forEach(estado => { %>
-                                                    <option value="<%= estado.id %>" <%= usuario && usuario.estado_id == estado.id ? 'selected' : '' %>><%= estado.nombre %></option>
+                                                    <option value="<%= estado.id %>" <%= usuario.estado_id == estado.id ? 'selected' : '' %>><%= estado.nombre %></option>
                                                 <% }) %>
                                             <% } %>
                                         </select>
@@ -127,27 +120,54 @@
                         <div class="form-group">
                             <label for="foto_perfil"><i class="fas fa-camera"></i> Foto de Perfil</label>
                             <div class="file-upload-container">
+                                <% if (usuario.foto_perfil) { %>
+                                    <div class="image-preview" id="foto-preview">
+                                        <img src="/uploads/usuarios/<%= usuario.foto_perfil %>" alt="Foto actual" style="max-width: 150px; max-height: 150px; border-radius: 8px;">
+                                        <p>Foto actual</p>
+                                    </div>
+                                <% } else { %>
+                                    <div class="image-preview" id="foto-preview"></div>
+                                <% } %>
                                 <input type="file" id="foto_perfil" name="foto_perfil" accept="image/*" class="file-input">
-                                <label for="foto_perfil" class="file-label">
-                                    <i class="fas fa-upload"></i> Seleccionar imagen
-                                </label>
+                                <label for="foto_perfil" class="file-label"><i class="fas fa-upload"></i> Seleccionar imagen</label>
                                 <div class="file-info">Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB</div>
-                                <div class="image-preview" id="foto-preview">
-                                    <% if (usuario && usuario.foto_perfil) { %>
-                                        <img src="/uploads/profiles/<%= usuario.foto_perfil %>" alt="Foto de perfil actual" style="max-width: 150px; max-height: 150px; border-radius: 8px;">
-                                    <% } %>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <h3><i class="fas fa-key"></i> Credenciales de Acceso</h3>
+                            <div class="form-group">
+                                <label for="nombre_usuario"><i class="fas fa-user-circle"></i> Nombre de Usuario *</label>
+                                <input type="text" id="nombre_usuario" name="nombre_usuario" class="form-control" value="<%= usuario.nombre_usuario %>" required>
+                                <div class="validation-message" id="usuario-validation"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="password"><i class="fas fa-lock"></i> Nueva Contraseña</label>
+                                        <div class="password-container">
+                                            <input type="password" id="password" name="password" class="form-control" placeholder="Dejar en blanco para no cambiar">
+                                            <button type="button" class="password-toggle" onclick="togglePassword('password')"><i class="fas fa-eye"></i></button>
+                                        </div>
+                                        <div class="password-strength" id="password-strength"></div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="password_confirmar"><i class="fas fa-lock"></i> Confirmar Nueva Contraseña</label>
+                                        <div class="password-container">
+                                            <input type="password" id="password_confirmar" name="password_confirmar" class="form-control" placeholder="Repetir contraseña">
+                                            <button type="button" class="password-toggle" onclick="togglePassword('password_confirmar')"><i class="fas fa-eye"></i></button>
+                                        </div>
+                                        <div class="validation-message" id="password-confirm-validation"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="card-footer">
                         <div class="form-actions">
-                            <a href="/auth/dashboard" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="fas fa-save"></i> Guardar Cambios
-                            </button>
+                            <a href="/usuarios" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Cancelar</a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fas fa-save"></i> Guardar cambios</button>
                         </div>
                     </div>
                 </form>
@@ -158,50 +178,104 @@
     <script src="/js/ubicaciones.js"></script>
     <script src="/js/validaciones.js"></script>
     <script>
-        // Inicializar validaciones en tiempo real y preview de imagen
+        const usuarioId = '<%= usuario.id %>';
         document.addEventListener('DOMContentLoaded', function() {
             setupFormValidation();
             setupImagePreview();
+            setupPasswordStrength();
         });
-        // Autocompletado de usuarios para admins
-        const inputBusqueda = document.getElementById('busqueda_usuario');
-        const listaSugerencias = document.getElementById('sugerencias_usuarios');
-        if(inputBusqueda) {
-          inputBusqueda.addEventListener('input', async function() {
-            const query = this.value.trim();
-            if(query.length < 2) {
-              listaSugerencias.style.display = 'none';
-              listaSugerencias.innerHTML = '';
-              return;
-            }
-            try {
-              const res = await fetch(`/usuarios/buscar?query=${encodeURIComponent(query)}`);
-              const data = await res.json();
-              if(data.success && data.usuarios.length > 0) {
-                listaSugerencias.innerHTML = data.usuarios.map(u =>
-                  `<li style='padding:0.5em 1em;cursor:pointer;border-bottom:1px solid #eee;' onclick="window.location='/usuarios/editar?id=${u.datos_id}'">
-                    <i class='fas fa-user'></i> <b>${u.nombre} ${u.apellido}</b> <span style='color:#888;font-size:0.95em;'>(${u.nombre_usuario} - ${u.correo})</span>
-                  </li>`
-                ).join('');
-                listaSugerencias.style.display = 'block';
-              } else {
-                listaSugerencias.innerHTML = `<li style='padding:0.5em 1em;color:#888;'>No se encontraron usuarios</li>`;
-                listaSugerencias.style.display = 'block';
-              }
-            } catch(e) {
-              listaSugerencias.innerHTML = `<li style='padding:0.5em 1em;color:#e74c3c;'>Error buscando usuarios</li>`;
-              listaSugerencias.style.display = 'block';
-            }
-          });
-          document.addEventListener('click', function(e) {
-            if(!inputBusqueda.contains(e.target) && !listaSugerencias.contains(e.target)) {
-              listaSugerencias.style.display = 'none';
-            }
-          });
+        function setupFormValidation() {
+            document.getElementById('correo').addEventListener('blur', function() {
+                validateField('correo', this.value, usuarioId);
+            });
+            document.getElementById('nombre_usuario').addEventListener('blur', function() {
+                validateField('nombre_usuario', this.value, usuarioId);
+            });
+            document.getElementById('numero_documento').addEventListener('blur', function() {
+                validateField('numero_documento', this.value, usuarioId);
+            });
+            document.getElementById('password_confirmar').addEventListener('input', function() {
+                validatePasswordConfirmation();
+            });
         }
+        async function validateField(campo, valor, usuarioId) {
+            if (!valor) return;
+            try {
+                const response = await fetch('/usuarios/validar-campo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ campo, valor, usuarioId })
+                });
+                const result = await response.json();
+                const validationDiv = document.getElementById(campo + '-validation');
+                if (result.success) {
+                    validationDiv.innerHTML = result.existe ? `<span class='error'><i class='fas fa-times'></i> ${result.mensaje}</span>` : `<span class='success'><i class='fas fa-check'></i> ${result.mensaje}</span>`;
+                }
+            } catch (error) { console.error('Error validando campo:', error); }
+        }
+        function setupImagePreview() {
+            document.getElementById('foto_perfil').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('foto-preview');
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa" style="max-width: 150px; max-height: 150px; border-radius: 8px;"><p>Archivo seleccionado: ${file.name}</p>`;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+        }
+        function setupPasswordStrength() {
+            document.getElementById('password').addEventListener('input', function() {
+                const password = this.value;
+                const strengthDiv = document.getElementById('password-strength');
+                const strength = calculatePasswordStrength(password);
+                strengthDiv.innerHTML = `<div class='strength-meter'><div class='strength-bar strength-${strength.level}'></div></div><span class='strength-text'>${strength.text}</span>`;
+            });
+        }
+        function calculatePasswordStrength(password) {
+            let score = 0;
+            if (password.length >= 6) score++;
+            if (password.length >= 8) score++;
+            if (/[a-z]/.test(password)) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+            if (score <= 2) return { level: 'weak', text: 'Débil' };
+            if (score <= 4) return { level: 'medium', text: 'Moderada' };
+            return { level: 'strong', text: 'Fuerte' };
+        }
+        function validatePasswordConfirmation() {
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('password_confirmar').value;
+            const validationDiv = document.getElementById('password-confirm-validation');
+            if (confirm && password !== confirm) {
+                validationDiv.innerHTML = '<span class="error"><i class="fas fa-times"></i> Las contraseñas no coinciden</span>';
+            } else if (confirm && password === confirm) {
+                validationDiv.innerHTML = '<span class="success"><i class="fas fa-check"></i> Las contraseñas coinciden</span>';
+            } else {
+                validationDiv.innerHTML = '';
+            }
+        }
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = field.nextElementSibling.querySelector('i');
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                field.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+        document.getElementById('editarUsuarioForm').addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            submitBtn.disabled = true;
+        });
     </script>
-    <style>
-    .autocomplete-list li:hover { background: #f3f3f3; }
-    </style>
 </body>
 </html>

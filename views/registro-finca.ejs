@@ -39,6 +39,28 @@
             </div>
         </div>
 
+        <!-- Mostrar mensajes -->
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <%= error.texto || error %>
+            </div>
+        <% } %>
+
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <%= success.texto || success %>
+            </div>
+        <% } %>
+
+        <% if (flash && flash.success) { %>
+          <div class="alert alert-success"><%= flash.success.texto || flash.success %></div>
+        <% } %>
+        <% if (flash && flash.error) { %>
+          <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+        <% } %>
+
         <!-- Formulario principal -->
         <div class="form-container">
             <div class="card">
@@ -46,21 +68,6 @@
                     <h2><i class="fas fa-warehouse"></i> Información de la Finca</h2>
                     <p>Proporcione los datos de su finca o granja</p>
                 </div>
-
-                <!-- Mostrar mensajes -->
-                <% if (typeof error !== 'undefined' && error) { %>
-                    <div class="alert alert-error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <%= error.texto || error %>
-                    </div>
-                <% } %>
-
-                <% if (typeof success !== 'undefined' && success) { %>
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i>
-                        <%= success.texto || success %>
-                    </div>
-                <% } %>
 
                 <form action="/fincas/registro" method="POST" enctype="multipart/form-data" class="registro-form" id="fincaForm">
                     <div class="card-body">
@@ -666,5 +673,17 @@
             }
         }
     </style>
+
+    <% if (!(usuario && usuario.rol === 'admin')) { %>
+      <script>
+        // Deshabilitar el formulario si no es admin
+        document.addEventListener('DOMContentLoaded', function() {
+          const form = document.getElementById('fincaForm');
+          if (form) {
+            Array.from(form.elements).forEach(el => el.disabled = true);
+          }
+        });
+      </script>
+    <% } %>
 </body>
 </html>

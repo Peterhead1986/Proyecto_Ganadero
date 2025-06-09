@@ -55,6 +55,13 @@
                 </div>
             <% } %>
 
+            <% if (flash && flash.success) { %>
+              <div class="alert alert-success"><%= flash.success.texto || flash.success %></div>
+            <% } %>
+            <% if (flash && flash.error) { %>
+              <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
+            <% } %>
+
             <form action="/auth/login" method="POST" class="login-form">
                 <div class="form-group">
                     <label for="nombre_usuario">
@@ -100,9 +107,9 @@
 
             <!-- Botones adicionales -->
             <div class="additional-actions">
-                <button type="button" class="btn-secondary" onclick="window.location.href='/auth/cambiar-password'">
-                    <i class="fas fa-key"></i>
-                    Cambiar Contraseña
+                <button type="button" class="btn-secondary btn-forgot-password" onclick="window.location.href='/usuarios/cambiar-password'">
+                    <i class="fas fa-unlock-alt"></i>
+                    ¿Olvidaste tu contraseña?
                 </button>
                 <button type="button" class="btn-primary btn-register-modal" onclick="showRegisterModal()">
                     <i class="fas fa-user-plus"></i>
