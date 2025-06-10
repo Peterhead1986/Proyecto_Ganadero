@@ -21,15 +21,58 @@
         }
         .carnet-header {
             display: flex;
+            flex-direction: row;
             align-items: flex-start;
             gap: 1em;
+            width: 100%;
+        }
+        .carnet-titulo {
+            text-align: center;
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #111;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.2em;
+        }
+        .carnet-hierro-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            min-width: 80px;
+        }
+        .carnet-hierro-label {
+            font-size: 1em;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: 1px;
+            margin-bottom: 0.2em;
+            text-transform: uppercase;
+        }
+        .carnet-hierro-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border: 2.5px solid #111;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 0.1em;
+        }
+        .carnet-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
         }
         .carnet-foto {
             width: 70px;
             height: 70px;
             border-radius: 10px;
             object-fit: cover;
-            border: 2px solid #3cb34a;
+            border: 2.5px solid #111;
+            margin-bottom: 0.5em;
         }
         .carnet-datos {
             flex: 1;
@@ -37,20 +80,17 @@
             flex-direction: column;
             gap: 0.2em;
             font-size: 1em;
+            color: #111;
         }
-        .carnet-label {
-            font-weight: 600;
-            color: #3cb34a;
-            font-size: 0.93em;
+        .carnet-label, .carnet-nombre, .carnet-finca {
+            color: #111;
         }
         .carnet-nombre {
             font-size: 1.15em;
             font-weight: bold;
-            color: #222c36;
         }
         .carnet-finca {
             font-size: 1.05em;
-            color: #1b2836;
             font-weight: 500;
         }
         .carnet-qr {
@@ -77,36 +117,216 @@
             .carnet-container { margin: 0 !important; box-shadow: none !important; }
             .carnet-actions { display: none !important; }
         }
+        .sidebar-btn {
+            background: #e0e0e0;
+            color: #222;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7em 1.5em;
+            font-size: 1em;
+            box-shadow: 0 3px 0 #bdbdbd, 0 2px 8px #0001;
+            cursor: pointer;
+            margin: 0 0.3em;
+            font-weight: 500;
+            transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+            outline: none;
+        }
+        .sidebar-btn:active {
+            box-shadow: 0 1px 0 #bdbdbd, 0 1px 4px #0001;
+            background: #cccccc;
+            color: #111;
+        }
+        .sidebar-btn[disabled], .sidebar-btn:disabled {
+            background: #f0f0f0;
+            color: #aaa;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .carnet-compact {
+            width: 340px;
+            height: 200px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #0002;
+            margin: 30px auto;
+            padding: 10px 12px 8px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 0.85em;
+            color: #111;
+        }
+        .carnet-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.7em;
+            width: 100%;
+        }
+        .carnet-foto-box {
+            flex: 0 0 54px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 0.1em;
+        }
+        .carnet-foto-mini {
+            width: 54px;
+            height: 54px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #111;
+        }
+        .carnet-hierro-box-mini.carnet-hierro-box-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            margin-top: 0.1em;
+            min-width: 50px;
+        }
+        .carnet-hierro-label-mini {
+            font-size: 0.85em;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: 1px;
+            margin-bottom: 0.1em;
+            text-transform: uppercase;
+        }
+        .carnet-hierro-img-mini {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border: 2px solid #111;
+            border-radius: 6px;
+            background: #fff;
+        }
+        .carnet-datos-compact {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.13em;
+            font-size: 0.93em;
+            color: #111;
+            min-width: 0;
+            margin-left: 0.5em;
+        }
+        .carnet-label-mini {
+            font-weight: 600;
+            color: #111;
+            font-size: 0.93em;
+        }
+        .carnet-nombre-mini {
+            font-size: 1em;
+            font-weight: bold;
+            color: #111;
+            margin-bottom: 0.1em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .carnet-qr-mini {
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+            margin-left: 0.2em;
+            margin-top: 0.1em;
+        }
+        .carnet-bottom-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            justify-content: flex-start;
+            margin-top: 0.2em;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            .carnet-compact, .carnet-compact * { visibility: visible; }
+            .carnet-compact { margin: 0 !important; box-shadow: none !important; }
+            .carnet-actions { display: none !important; }
+        }
+        .carnet-row-hierro-medio {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5em;
+            width: 100%;
+            height: 100%;
+        }
+        .carnet-hierro-box-mini.carnet-hierro-box-medio {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+        }
+        .carnet-foto-box-medio {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 54px;
+        }
+        .carnet-row-foto-arriba {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.5em;
+            width: 100%;
+            height: 100%;
+        }
+        .carnet-foto-box-arriba {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            min-width: 54px;
+        }
     </style>
 </head>
 <body style="background:#f3f3f3;">
     <% /* Renderizado seguro de clase y color de fondo */ %>
-    <% if (!finca.logo_finca) { %>
+    <% if (finca && !finca.hierro_finca) { %>
         <div class="alert alert-error" style="margin:10px 0;text-align:center;background:#ffeaea;color:#b71c1c;padding:0.7em 1em;border-radius:8px;">
-            <i class="fas fa-exclamation-triangle"></i> Esta finca no tiene logo. Por favor, sube un logo en la sección de edición de la finca para poder imprimir el carnet.
+            <i class="fas fa-exclamation-triangle"></i> Esta finca no tiene hierro. Por favor, sube un hierro en la sección de edición de la finca para poder imprimir el carnet.
         </div>
     <% } %>
-    <div class="carnet-container<%= (typeof tipoUsuario === 'string' && tipoUsuario.trim()) ? ' ' + tipoUsuario.trim() : '' %>" style="background-color:<%= fondoColor && fondoColor.match(/^#|rgb|hsl|[a-zA-Z]/) ? fondoColor : '#fff' %>;<%= !finca.logo_finca ? 'pointer-events:none;opacity:0.6;' : '' %>">
-        <div class="carnet-header">
-            <img src="<%= usuario.foto_perfil ? ('/uploads/profiles/' + usuario.foto_perfil) : '/img/default-user.png' %>" class="carnet-foto" alt="Foto perfil" onerror="this.onerror=null;this.src='/img/default-user.png';">
-            <div class="carnet-datos">
-                <div class="carnet-nombre"><%= usuario.nombre %> <%= usuario.apellido %></div>
-                <div><span class="carnet-label">Cédula:</span> <%= usuario.numero_documento %></div>
-                <div><span class="carnet-label">Ciudad usuario:</span> <%= usuario.ciudad_nombre %></div>
-                <div class="carnet-finca"><span class="carnet-label">Finca:</span> <%= finca.nombre_finca %></div>
-                <div><span class="carnet-label">Ciudad finca:</span> <%= finca.ciudad_nombre %></div>
+    <% if (!finca) { %>
+        <div class="alert alert-info" style="margin:18px 0 24px 0;text-align:center;background:#e3f6ff;color:#0a3d62;padding:1.1em 1.5em;border-radius:12px;box-shadow:0 2px 8px #0001;font-size:1.08em;">
+            <i class="fas fa-seedling" style="font-size:1.3em;margin-bottom:4px;"></i><br>
+            <strong>¡Aún no tienes fincas registradas!</strong><br>
+            Registra tu primera finca para disfrutar de todos los beneficios del sistema y poder generar tu carnet ganadero.<br>
+            <a href="/fincas/registro" class="btn-registrar-finca" style="display:inline-block;margin-top:1em;padding:0.6em 1.4em;background:#3cb34a;color:#fff;border-radius:8px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px #0001;transition:background 0.2s;">Registrar Finca</a>
+        </div>
+    <% } %>
+    <div class="carnet-container carnet-compact" style="background-color:<%= fondoColor && fondoColor.match(/^#|rgb|hsl|[a-zA-Z]/) ? fondoColor : '#fff' %>;<%= finca && !finca.hierro_finca ? 'pointer-events:none;opacity:0.6;' : '' %>">
+        <div class="carnet-row carnet-row-foto-arriba">
+            <div class="carnet-foto-box carnet-foto-box-arriba">
+                <img src="<%= usuario.foto_perfil ? ('/uploads/profiles/' + usuario.foto_perfil) : '/img/default-user.png' %>" class="carnet-foto-mini" alt="Foto perfil" onerror="this.onerror=null;this.src='/img/default-user.png';">
             </div>
-            <div class="carnet-qr">
+            <div class="carnet-datos-compact">
+                <div class="carnet-nombre-mini"><%= usuario.nombre %> <%= usuario.apellido %></div>
+                <div><span class="carnet-label-mini">Cédula:</span> <%= usuario.numero_documento %></div>
+                <div><span class="carnet-label-mini">Ciudad usuario:</span> <%= usuario.ciudad_nombre %></div>
+                <div><span class="carnet-label-mini">Finca:</span> <%= finca ? finca.nombre_finca : '-' %></div>
+                <div><span class="carnet-label-mini">Ciudad finca:</span> <%= finca ? finca.ciudad_nombre : '-' %></div>
+            </div>
+            <div class="carnet-hierro-box-mini carnet-hierro-box-medio">
+                <div class="carnet-hierro-label-mini">HIERRO</div>
+                <% if (finca && finca.hierro_finca) { %>
+                    <img src="/uploads/logos/<%= finca.hierro_finca %>" class="carnet-hierro-img-mini" alt="Hierro finca" onerror="this.onerror=null;this.src='/img/default-logo.png';">
+                <% } else { %>
+                    <div style="width:40px;height:40px;border:2px dashed #bbb;border-radius:6px;background:#fafafa;"></div>
+                <% } %>
+            </div>
+            <div class="carnet-qr-mini">
                 <canvas id="qr-canvas"></canvas>
             </div>
         </div>
-        <% if (finca.logo_finca) { %>
-            <img src="/uploads/logos/<%= finca.logo_finca %>" class="carnet-logo" alt="Logo finca" onerror="this.onerror=null;this.src='/img/default-logo.png';">
-        <% } %>
     </div>
     <div class="carnet-actions" style="text-align:center;margin-top:1.5em;">
-        <button onclick="window.print()" class="sidebar-btn" <%= !finca.logo_finca ? 'disabled' : '' %>><i class="fas fa-print"></i> Imprimir</button>
-        <button id="btnDescargarPDF" class="sidebar-btn" <%= !finca.logo_finca ? 'disabled' : '' %>><i class="fas fa-file-pdf"></i> Descargar PDF</button>
+        <button onclick="window.print()" class="sidebar-btn" <%= !finca || !finca.hierro_finca ? 'disabled' : '' %>><i class="fas fa-print"></i> Imprimir</button>
+        <button id="btnDescargarPDF" class="sidebar-btn" <%= !finca || !finca.hierro_finca ? 'disabled' : '' %>><i class="fas fa-file-pdf"></i> Descargar PDF</button>
         <a href="/auth/dashboard" class="sidebar-btn"><i class="fas fa-arrow-left"></i> Volver</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
@@ -114,9 +334,9 @@
     <script>
         // Generar QR con datos básicos
         const qrCanvas = document.getElementById('qr-canvas');
-        if (qrCanvas && typeof QRCode !== 'undefined') {
-            const qrData = `Usuario: <%= usuario.nombre %> <%= usuario.apellido %> | Finca: <%= finca.nombre_finca %> | Ciudad: <%= finca.ciudad_nombre %>`;
-            QRCode.toCanvas(qrCanvas, qrData, { width: 60, margin: 0 }, function (error) {
+        if (qrCanvas && typeof QRCode !== 'undefined' && finca) {
+            const qrData = `Usuario: <%= usuario.nombre %> <%= usuario.apellido %> | Finca: <%= finca ? finca.nombre_finca : '' %> | Ciudad: <%= finca ? finca.ciudad_nombre : '' %>`;
+            QRCode.toCanvas(qrCanvas, qrData, { width: 48, margin: 0 }, function (error) {
                 if (error) console.error(error);
             });
         }
