@@ -22,6 +22,14 @@ exports.generarCarnet = async (req, res) => {
             });
         }
         const fincas = await Finca.buscarPorUsuario(usuarioId);
+        let qrData = null;
+        // DEPURACIÓN: Mostrar el valor de la foto de perfil y la ruta final antes de renderizar
+        console.log('DEBUG carnetController - usuario.foto_perfil:', usuario.foto_perfil);
+        if (usuario.foto_perfil) {
+            console.log('DEBUG carnetController - ruta imagen perfil esperada:', '/uploads/profiles/' + usuario.foto_perfil);
+        } else {
+            console.log('DEBUG carnetController - se usará imagen por defecto /img/default-user.png');
+        }
         if (!fincas || fincas.length === 0) {
             // Renderizar carnet.ejs con finca: null para mostrar mensaje motivador
             return res.render('carnet', {
@@ -29,16 +37,23 @@ exports.generarCarnet = async (req, res) => {
                 usuario,
                 finca: null,
                 fondoColor: '#fff',
-                tipoUsuario: usuario.rol || ''
+                tipoUsuario: usuario.rol || '',
+                qrData: null,
+                error: null
             });
         }
         const finca = fincas[0]; // Por defecto, la primera finca
+        if (finca && finca.hierro_finca) {
+            qrData = `Usuario: ${usuario.nombre} ${usuario.apellido} | Finca: ${finca.nombre_finca} | Ciudad: ${finca.ciudad_nombre || ''}`;
+        }
         res.render('carnet', {
             title: 'Carnet Ganadero',
             usuario,
             finca,
             fondoColor: '#fff',
-            tipoUsuario: usuario.rol || ''
+            tipoUsuario: usuario.rol || '',
+            qrData,
+            error: null
         });
     } catch (err) {
         res.status(500).render('error', {
@@ -76,7 +91,9 @@ exports.seleccionarFinca = async (req, res) => {
                 usuario,
                 finca: null,
                 fondoColor: '#fff',
-                tipoUsuario: usuario.rol || ''
+                tipoUsuario: usuario.rol || '',
+                qrData: null,
+                error: null
             });
         }
         // Si solo tiene una finca, redirigir directo al carnet
@@ -120,6 +137,7 @@ exports.generarCarnetFinca = async (req, res) => {
         }
         const fincas = await Finca.buscarPorUsuario(usuarioId);
         const finca = fincas.find(f => String(f.id_finca) === String(fincaId));
+        let qrData = null;
         if (!finca) {
             return res.status(404).render('error', {
                 title: 'Finca no encontrada',
@@ -127,12 +145,17 @@ exports.generarCarnetFinca = async (req, res) => {
                 error: { status: 404 }
             });
         }
+        if (finca && finca.hierro_finca) {
+            qrData = `Usuario: ${usuario.nombre} ${usuario.apellido} | Finca: ${finca.nombre_finca} | Ciudad: ${finca.ciudad_nombre || ''}`;
+        }
         res.render('carnet', {
             title: 'Carnet Ganadero',
             usuario,
             finca,
             fondoColor: '#fff',
-            tipoUsuario: usuario.rol || ''
+            tipoUsuario: usuario.rol || '',
+            qrData,
+            error: null
         });
     } catch (err) {
         res.status(500).render('error', {

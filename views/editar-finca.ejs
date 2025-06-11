@@ -113,59 +113,25 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="municipio_id">
-                                            <i class="fas fa-building"></i>
-                                            Municipio
-                                        </label>
-                                        <select id="municipio_id" name="municipio_id" class="form-control">
-                                            <% municipios.forEach(municipio => { %>
-                                                <option value="<%= municipio.id %>" <%= finca.municipio_id == municipio.id ? 'selected' : '' %>><%= municipio.nombre %></option>
-                                            <% }) %>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="parroquia_id">
-                                            <i class="fas fa-church"></i>
-                                            Parroquia
-                                        </label>
-                                        <select id="parroquia_id" name="parroquia_id" class="form-control">
-                                            <% parroquias.forEach(parroquia => { %>
-                                                <option value="<%= parroquia.id %>" <%= finca.parroquia_id == parroquia.id ? 'selected' : '' %>><%= parroquia.nombre %></option>
-                                            <% }) %>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <div class="form-section">
-                            <h3><i class="fas fa-image"></i> Logo de la Finca</h3>
+                            <h3><i class="fas fa-image"></i> Hierro de la Finca</h3>
                             <div class="form-group">
-                                <label for="logo_finca">
+                                <label for="hierro_finca">
                                     <i class="fas fa-upload"></i>
-                                    Logo o Imagen Representativa
+                                    Hierro o Imagen Representativa
                                 </label>
-                                <div class="file-upload-container">
-                                    <% if (finca.logo_finca) { %>
-                                        <div class="image-preview" id="logo-preview">
-                                            <img src="/uploads/logos/<%= finca.logo_finca %>" alt="Logo actual" style="max-width:100px;max-height:100px;border-radius:8px;">
-                                            <div class="logo-info">
-                                                <p><strong>Logo actual:</strong> <%= finca.logo_finca %></p>
-                                            </div>
-                                        </div>
-                                    <% } %>
-                                    <input type="file" id="logo_finca" name="logo_finca" accept="image/*" class="file-input">
-                                    <label for="logo_finca" class="file-label">
-                                        <i class="fas fa-upload"></i>
-                                        Cambiar logo
-                                    </label>
-                                    <div class="file-info">
-                                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
-                                    </div>
+                                <% if (finca.hierro_finca) { %>
+                                    <img src="/uploads/logos/<%= finca.hierro_finca %>" alt="Hierro actual" style="max-width:100px;max-height:100px;border-radius:8px;">
+                                    <p><strong>Hierro actual:</strong> <%= finca.hierro_finca %></p>
+                                <% } %>
+                                <input type="file" id="hierro_finca" name="hierro_finca" accept="image/*" class="file-input">
+                                <label for="hierro_finca" class="file-label">
+                                    <i class="fas fa-upload"></i>
+                                    Seleccionar hierro
+                                </label>
+                                <div class="file-info">
+                                    Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
                                 </div>
                             </div>
                         </div>
@@ -189,14 +155,14 @@
     <%- include('partials/_footer') %>
     <script src="/js/ubicaciones.js"></script>
     <script>
-        // Preview de logo
-        document.getElementById('logo_finca').addEventListener('change', function(e) {
+        // Preview de hierro
+        document.getElementById('hierro_finca').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const preview = document.getElementById('logo-preview');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa del logo" style="max-width:100px;max-height:100px;border-radius:8px;">`;
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa del hierro" style="max-width:100px;max-height:100px;border-radius:8px;">`;
                 };
                 reader.readAsDataURL(file);
             } else {

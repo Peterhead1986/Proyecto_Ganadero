@@ -29,10 +29,20 @@
                     <% fincas.forEach(function(finca) { %>
                         <tr>
                             <td><%= finca.nombre %></td>
-                            <td><%= finca.ubicacion %></td>
+                            <td>
+                                <% 
+                                    // Suponiendo que la ubicación es una cadena con formato "Estado, Ciudad, Municipio, Parroquia"
+                                    var ubicacion = finca.ubicacion.split(', ');
+                                    // Mostrar solo Estado y Ciudad
+                                    var estadoCiudad = ubicacion.slice(0, 2).join(', ');
+                                %>
+                                <%= estadoCiudad %>
+                            </td>
                             <td>
                                 <a href="/fincas/<%= finca.id %>">Ver</a>
-                                <a href="/fincas/editar/<%= finca.id %>">Editar</a>
+                                <% if (usuario && usuario.rol === 'admin') { %>
+                                    <a href="/fincas/editar/<%= finca.id %>">Editar</a>
+                                <% } %>
                             </td>
                         </tr>
                     <% }) %>
@@ -41,7 +51,9 @@
         <% } else { %>
             <p>No tienes fincas registradas.</p>
         <% } %>
-        <a href="/fincas/registrar" class="btn">Registrar Nueva Finca</a>
+        <% if (usuario && usuario.rol === 'admin') { %>
+            <a href="/fincas/registrar" class="btn">Registrar Nueva Finca</a>
+        <% } %>
     </div>
     <%- include('partials/_footer') %>
 </body>

@@ -3,12 +3,20 @@
   <nav class="navbar header-ambientado">
     <div class="container navbar-center-container">
       <ul class="navbar-nav navbar-center">
-        <li>
-          <a href="/auth/dashboard" class="navbar-btn-home"><i class="fas fa-home"></i> Inicio</a>
-        </li>
-        <li><a href="/lista-usuarios" class="navbar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
-        <li><a href="/listado-fincas" class="navbar-btn"><i class="fas fa-tractor"></i> Listado de fincas</a></li>
-        <li><a href="/auth/logout" class="navbar-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        <% if (isAuthenticated && usuario && usuario.rol === 'admin') { %>
+          <li>
+            <a href="/auth/dashboard" class="navbar-btn-home"><i class="fas fa-home"></i> Inicio</a>
+          </li>
+          <li><a href="/lista-usuarios" class="navbar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
+          <li><a href="/listado-fincas" class="navbar-btn"><i class="fas fa-tractor"></i> Listado de fincas</a></li>
+          <li><a href="/auth/logout" class="navbar-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        <% } else if (isAuthenticated && usuario && usuario.rol === 'usuario') { %>
+          <li>
+            <a href="/auth/dashboard" class="navbar-btn-home"><i class="fas fa-home"></i> Inicio</a>
+          </li>
+          <li><a href="/listado-fincas" class="navbar-btn"><i class="fas fa-tractor"></i> Listado de fincas</a></li>
+          <li><a href="/auth/logout" class="navbar-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+        <% } %>
       </ul>
       <% const usuarioHeader = typeof usuario !== 'undefined' && usuario ? usuario : (typeof user !== 'undefined' && user ? user : null); %>
       <% if (usuarioHeader && usuarioHeader.nombre) { %>

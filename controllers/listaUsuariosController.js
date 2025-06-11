@@ -7,6 +7,8 @@ const Ubicacion = require('../models/Ubicacion');
 // GET /lista-usuarios
 exports.listarUsuarios = async (req, res) => {
     try {
+        // Log inicial de la sesión
+        console.log('DEBUG listaUsuariosController - Usuario en sesión (inicio):', req.session.user);
         if (req.session.user && (!req.session.user.datos_id || !req.session.user.rol)) {
             try {
                 const usuario = await Usuario.buscarPorNombreUsuario(req.session.user.nombre_usuario);
@@ -15,13 +17,16 @@ exports.listarUsuarios = async (req, res) => {
                 console.error('Error refrescando sesión:', e);
             }
         }
-        if (!req.session.user || req.session.user.rol !== 'admin') {
+        // Log después de refrescar sesión
+        console.log('DEBUG listaUsuariosController - Usuario en sesión (después de refrescar):', req.session.user);
+        if (!req.session.user) {
             return res.status(403).render('error', {
                 title: 'No autorizado',
-                message: 'Solo administradores pueden ver la lista de usuarios.',
+                message: 'Debe iniciar sesión para ver la lista de usuarios.',
                 error: { status: 403 }
             });
         }
+        // Permitir acceso a admin y normal, pero solo admin puede ver acciones
         const pagina = parseInt(req.query.pagina) || 1;
         const filtro = req.query.filtro || '';
         const estado_id = req.query.estado_id || '';

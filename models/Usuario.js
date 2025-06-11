@@ -17,6 +17,7 @@ class Usuario {
         this.municipioId = data.municipio_id;
         this.parroquiaId = data.parroquia_id;
         this.fotoPerfil = data.foto_perfil;
+        this.numeroContacto = data.numero_contacto;
         this.createdAt = data.created_at;
     }
 
@@ -35,8 +36,8 @@ class Usuario {
                 INSERT INTO usuarios_datos (
                     usuario_login_id, nombre, apellido, correo, tipo_documento, 
                     numero_documento, direccion, estado_id, ciudad_id, 
-                    municipio_id, parroquia_id, foto_perfil
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    foto_perfil, numero_contacto
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 usuarioLoginId,
                 datosPersonales.nombre,
@@ -47,9 +48,8 @@ class Usuario {
                 datosPersonales.direccion,
                 datosPersonales.estado_id || null,
                 datosPersonales.ciudad_id || null,
-                datosPersonales.municipio_id || null,
-                datosPersonales.parroquia_id || null,
-                datosPersonales.foto_perfil || null
+                datosPersonales.foto_perfil || null,
+                datosPersonales.numero_contacto || null
             ]);
             await executeRawQuery('COMMIT');
             return {
@@ -80,19 +80,13 @@ class Usuario {
                     ud.direccion,
                     ud.estado_id,
                     ud.ciudad_id,
-                    ud.municipio_id,
-                    ud.parroquia_id,
-                    ud.foto_perfil,
                     e.nombre as estado_nombre,
                     c.nombre as ciudad_nombre,
-                    m.nombre as municipio_nombre,
-                    p.nombre as parroquia_nombre
+                    ud.numero_contacto
                 FROM usuarios_login ul
                 LEFT JOIN usuarios_datos ud ON ul.id = ud.usuario_login_id
                 LEFT JOIN ubicaciones_venezuela e ON ud.estado_id = e.id
                 LEFT JOIN ubicaciones_venezuela c ON ud.ciudad_id = c.id
-                LEFT JOIN ubicaciones_venezuela m ON ud.municipio_id = m.id
-                LEFT JOIN ubicaciones_venezuela p ON ud.parroquia_id = p.id
                 WHERE ul.nombre_usuario = ?
             `, [nombreUsuario]);
             return result[0] || null;
@@ -128,19 +122,14 @@ class Usuario {
                     ud.direccion,
                     ud.estado_id,
                     ud.ciudad_id,
-                    ud.municipio_id,
-                    ud.parroquia_id,
-                    ud.foto_perfil,
                     e.nombre as estado_nombre,
                     c.nombre as ciudad_nombre,
-                    m.nombre as municipio_nombre,
-                    p.nombre as parroquia_nombre
+                    ud.numero_contacto,
+                    ud.foto_perfil
                 FROM usuarios_login ul
                 LEFT JOIN usuarios_datos ud ON ul.id = ud.usuario_login_id
                 LEFT JOIN ubicaciones_venezuela e ON ud.estado_id = e.id
                 LEFT JOIN ubicaciones_venezuela c ON ud.ciudad_id = c.id
-                LEFT JOIN ubicaciones_venezuela m ON ud.municipio_id = m.id
-                LEFT JOIN ubicaciones_venezuela p ON ud.parroquia_id = p.id
                 WHERE ud.id = ?
             `, [id]);
             return result[0] || null;
@@ -239,7 +228,7 @@ class Usuario {
     // Actualizar datos de usuario (admin o propio)
     static async actualizar(datosId, datosActualizados) {
         // datosId: id de usuarios_datos
-        // datosActualizados: { nombre, apellido, correo, tipo_documento, numero_documento, direccion, estado_id, ciudad_id, municipio_id, parroquia_id, foto_perfil, nombre_usuario?, password? }
+        // datosActualizados: { nombre, apellido, correo, tipo_documento, numero_documento, direccion, estado_id, ciudad_id, foto_perfil, nombre_usuario?, password? }
         try {
             await executeRawQuery('START TRANSACTION');
 
@@ -254,9 +243,8 @@ class Usuario {
                     direccion = ?,
                     estado_id = ?,
                     ciudad_id = ?,
-                    municipio_id = ?,
-                    parroquia_id = ?,
-                    foto_perfil = ?
+                    foto_perfil = ?,
+                    numero_contacto = ?
                 WHERE id = ?
             `, [
                 datosActualizados.nombre,
@@ -267,9 +255,8 @@ class Usuario {
                 datosActualizados.direccion || null,
                 datosActualizados.estado_id || null,
                 datosActualizados.ciudad_id || null,
-                datosActualizados.municipio_id || null,
-                datosActualizados.parroquia_id || null,
                 datosActualizados.foto_perfil || null,
+                datosActualizados.numero_contacto || null,
                 datosId
             ]);
 
@@ -324,11 +311,10 @@ class Usuario {
                     ud.direccion,
                     ud.estado_id,
                     ud.ciudad_id,
-                    ud.municipio_id,
-                    ud.parroquia_id,
                     ud.foto_perfil,
                     ul.created_at as creado,
-                    ul.updated_at as actualizado
+                    ul.updated_at as actualizado,
+                    ud.numero_contacto
                 FROM usuarios_login ul
                 LEFT JOIN usuarios_datos ud ON ul.id = ud.usuario_login_id
                 ORDER BY ud.nombre ASC, ud.apellido ASC
@@ -354,27 +340,30 @@ class Usuario {
         const total = totalRes[0].total;
         // Obtener página
         const usuarios = await executeQuery(
-            `SELECT ul.id as login_id, ul.nombre_usuario, ud.id as datos_id, ud.nombre, ud.apellido, ud.correo, ud.tipo_documento, ud.numero_documento, ud.direccion, ud.estado_id, ud.ciudad_id, ud.municipio_id, ud.parroquia_id, ud.foto_perfil, ul.created_at as creado, ul.updated_at as actualizado
+            `SELECT ul.id as login_id, ul.nombre_usuario, ud.id as datos_id, ud.nombre, ud.apellido, ud.correo, ud.tipo_documento, ud.numero_documento, ud.direccion, ud.estado_id, ud.ciudad_id, ud.foto_perfil, ul.created_at as creado, ul.updated_at as actualizado,
+                e.nombre as estado_nombre,
+                c.nombre as ciudad_nombre,
+                ud.numero_contacto
              FROM usuarios_login ul
              LEFT JOIN usuarios_datos ud ON ul.id = ud.usuario_login_id
+             LEFT JOIN ubicaciones_venezuela e ON ud.estado_id = e.id
+             LEFT JOIN ubicaciones_venezuela c ON ud.ciudad_id = c.id
              WHERE ud.nombre LIKE ? OR ud.apellido LIKE ? OR ul.nombre_usuario LIKE ? OR ud.correo LIKE ?
              ORDER BY ud.nombre ASC, ud.apellido ASC
              LIMIT ? OFFSET ?`,
-            [filtroSQL, filtroSQL, filtroSQL, filtroSQL, limite, offset]
+            [...params, limite, offset]
         );
         return { usuarios, total };
     }
 
     // Obtener usuarios paginados y filtrados por texto y ubicaciones
-    static async obtenerPaginado({ pagina = 1, limite = 10, filtro = '', estado_id, ciudad_id, municipio_id, parroquia_id }) {
+    static async obtenerPaginado({ pagina = 1, limite = 10, filtro = '', estado_id, ciudad_id }) {
         const offset = (pagina - 1) * limite;
         const filtroSQL = filtro ? `%${filtro}%` : '%';
         let where = `WHERE (ud.nombre LIKE ? OR ud.apellido LIKE ? OR ul.nombre_usuario LIKE ? OR ud.correo LIKE ?)`;
         let params = [filtroSQL, filtroSQL, filtroSQL, filtroSQL];
         if (estado_id) { where += ' AND ud.estado_id = ?'; params.push(estado_id); }
         if (ciudad_id) { where += ' AND ud.ciudad_id = ?'; params.push(ciudad_id); }
-        if (municipio_id) { where += ' AND ud.municipio_id = ?'; params.push(municipio_id); }
-        if (parroquia_id) { where += ' AND ud.parroquia_id = ?'; params.push(parroquiaId); }
         // Contar total
         const totalRes = await executeQuery(
             `SELECT COUNT(*) as total FROM usuarios_datos ud
@@ -385,9 +374,14 @@ class Usuario {
         const total = totalRes[0].total;
         // Obtener página
         const usuarios = await executeQuery(
-            `SELECT ul.id as login_id, ul.nombre_usuario, ud.id as datos_id, ud.nombre, ud.apellido, ud.correo, ud.tipo_documento, ud.numero_documento, ud.direccion, ud.estado_id, ud.ciudad_id, ud.municipio_id, ud.parroquia_id, ud.foto_perfil, ul.created_at as creado, ul.updated_at as actualizado
+            `SELECT ul.id as login_id, ul.nombre_usuario, ud.id as datos_id, ud.nombre, ud.apellido, ud.correo, ud.tipo_documento, ud.numero_documento, ud.direccion, ud.estado_id, ud.ciudad_id, ud.foto_perfil, ul.created_at as creado, ul.updated_at as actualizado,
+                e.nombre as estado_nombre,
+                c.nombre as ciudad_nombre,
+                ud.numero_contacto
              FROM usuarios_login ul
              LEFT JOIN usuarios_datos ud ON ul.id = ud.usuario_login_id
+             LEFT JOIN ubicaciones_venezuela e ON ud.estado_id = e.id
+             LEFT JOIN ubicaciones_venezuela c ON ud.ciudad_id = c.id
              ${where}
              ORDER BY ud.nombre ASC, ud.apellido ASC
              LIMIT ? OFFSET ?`,

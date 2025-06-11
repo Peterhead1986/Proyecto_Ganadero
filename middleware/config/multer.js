@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
         let uploadDir = uploadPath;
         if (file.fieldname === 'foto_perfil') {
             uploadDir = profilesPath;
-        } else if (file.fieldname === 'logo_finca') {
+        } else if (file.fieldname === 'hierro_finca') {
             uploadDir = logosPath;
         }
         cb(null, uploadDir);
@@ -57,7 +57,7 @@ const uploadLogo = multer({
     storage,
     fileFilter,
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB
-}).single('logo_finca');
+}).single('hierro_finca');
 
 // Middleware para manejar errores de multer
 function handleMulterError(err, req, res, next) {

@@ -228,65 +228,125 @@ textarea.form-control {
 }
 
 /* Variantes de botones */
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+.btn-primary, .btn-login {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.13rem;
+    font-weight: 700;
+    padding: 0.85em 2.2em;
+    box-shadow: 0 6px 18px 0 rgba(67, 233, 123, 0.18), 0 2px 4px 0 rgba(0,0,0,0.10);
+    transition: all 0.18s cubic-bezier(.4,2,.6,1);
+    position: relative;
+    outline: none;
+    text-shadow: 0 1px 2px #0002;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+}
+
+.btn-primary:hover, .btn-login:hover {
+    background: linear-gradient(135deg, #38f9d7 0%, #43e97b 100%);
+    box-shadow: 0 10px 28px 0 rgba(67, 233, 123, 0.22), 0 4px 8px 0 rgba(0,0,0,0.13);
+    transform: translateY(-2px) scale(1.04);
+}
+
+.btn-primary:active, .btn-login:active {
+    box-shadow: 0 2px 6px 0 rgba(67, 233, 123, 0.13);
+    transform: translateY(1px) scale(0.98);
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, var(--gray), var(--dark-gray));
+    background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
+    color: #222;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 0.8em 2em;
+    box-shadow: 0 4px 14px 0 rgba(189, 189, 189, 0.18), 0 2px 4px 0 rgba(0,0,0,0.08);
+    transition: all 0.18s cubic-bezier(.4,2,.6,1);
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
 }
 
-.btn-success {
-    background: linear-gradient(135deg, var(--success), #2ecc71);
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #bdbdbd 0%, #e0e0e0 100%);
+    box-shadow: 0 8px 22px 0 rgba(189, 189, 189, 0.22), 0 4px 8px 0 rgba(0,0,0,0.10);
+    transform: translateY(-1.5px) scale(1.03);
 }
 
-.btn-error, .btn-danger {
-    background: linear-gradient(135deg, var(--error), #c0392b);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, var(--warning), #e67e22);
-}
-
-.btn-info {
-    background: linear-gradient(135deg, var(--info), #2980b9);
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid var(--primary-green);
-    color: var(--primary-green);
-}
-
-.btn-outline:hover {
-    background: var(--primary-green);
-    color: white;
-}
-
-/* Tamaños de botones */
-.btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-}
-
-.btn-lg {
-    padding: 1rem 2rem;
-    font-size: 1.125rem;
-}
-
-.btn-block {
-    display: block;
-    width: 100%;
-}
-
-/* Cards */
-.card {
-    background: white;
+.btn-secondary:active {
+    box-shadow: 0 2px 6px 0 rgba(189, 189, 189, 0.13);
     border-radius: 12px;
     box-shadow: var(--shadow-md);
     overflow: hidden;
     transition: var(--transition);
     border: 1px solid rgba(45, 80, 22, 0.1);
+}
+
+/* Botón Registrarse y Crear cuenta con verde sólido principal y estilo 3D moderno */
+.btn-register, .btn-signup, .btn-crear-cuenta {
+    background: #2d5016 !important;
+    color: #fff !important;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.13rem;
+    font-weight: 700;
+    padding: 0.85em 2.2em;
+    box-shadow: 0 6px 18px 0 rgba(45, 80, 22, 0.18), 0 2px 4px 0 rgba(0,0,0,0.10);
+    transition: all 0.18s cubic-bezier(.4,2,.6,1);
+    position: relative;
+    outline: none;
+    text-shadow: 0 1px 2px #0002;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+}
+
+.btn-register:hover, .btn-signup:hover, .btn-crear-cuenta:hover {
+    background: #244212 !important;
+    box-shadow: 0 10px 28px 0 rgba(45, 80, 22, 0.22), 0 4px 8px 0 rgba(0,0,0,0.13);
+    transform: translateY(-2px) scale(1.04);
+}
+
+.btn-register:active, .btn-signup:active, .btn-crear-cuenta:active {
+    box-shadow: 0 2px 6px 0 rgba(45, 80, 22, 0.13);
+    transform: translateY(1px) scale(0.98);
+}
+
+/* Botón Olvidaste tu contraseña con estilo gris moderno 3D y relieve */
+.btn-forgot, .btn-olvide, .btn-olvidaste {
+    background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%) !important;
+    color: #222 !important;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 0.8em 2em;
+    box-shadow: 0 4px 14px 0 rgba(189, 189, 189, 0.18), 0 2px 4px 0 rgba(0,0,0,0.08);
+    transition: all 0.18s cubic-bezier(.4,2,.6,1);
+    outline: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    text-shadow: 0 1px 2px #fff4;
+}
+
+.btn-forgot:hover, .btn-olvide:hover, .btn-olvidaste:hover {
+    background: linear-gradient(135deg, #bdbdbd 0%, #e0e0e0 100%) !important;
+    box-shadow: 0 8px 22px 0 rgba(189, 189, 189, 0.22), 0 4px 8px 0 rgba(0,0,0,0.10);
+    transform: translateY(-1.5px) scale(1.03);
+}
+
+.btn-forgot:active, .btn-olvide:active, .btn-olvidaste:active {
+    box-shadow: 0 2px 6px 0 rgba(189, 189, 189, 0.13);
+    transform: translateY(1px) scale(0.98);
 }
 
 .card:hover {

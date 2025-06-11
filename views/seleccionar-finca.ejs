@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Seleccionar Finca para Carnet</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .select-finca-container {
+            max-width: 400px;
+            margin: 60px auto 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #0002;
+            padding: 2em 2em 1.5em 2em;
+            text-align: center;
+        }
+        .select-finca-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 1.2em;
+            color: #3cb34a;
+        }
+        .select-finca-form select {
+            width: 100%;
+            padding: 0.7em;
+            border-radius: 8px;
+            border: 1px solid #bbb;
+            margin-bottom: 1.2em;
+            font-size: 1em;
+        }
+        .sidebar-btn {
+            background: #3cb34a;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.7em 1.5em;
+            font-size: 1em;
+            box-shadow: 0 2px 6px #0001;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sidebar-btn:hover {
+            background: #2a8c36;
+        }
+        .volver-btn {
+            background: #888;
+            margin-top: 1em;
+        }
+    </style>
+</head>
+<body style="background:#f3f3f3;">
+    <div class="select-finca-container">
+        <div class="select-finca-title">Selecciona la finca para generar el carnet</div>
+        <form class="select-finca-form" method="GET" action="/carnet/<%= usuario.id_usuario %>/">
+            <select name="fincaId" required>
+                <% fincas.forEach(function(finca) { %>
+                    <option value="<%= finca.id_finca %>"><%= finca.nombre_finca %> - <%= finca.ciudad_nombre %></option>
+                <% }); %>
+            </select>
+            <button type="submit" class="sidebar-btn"><i class="fas fa-id-card"></i> Generar Carnet</button>
+        </form>
+        <a href="/usuarios" class="sidebar-btn volver-btn"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!-- views/perfil-usuario.ejs -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forms.css">
+    <style>
+        .btn-volver-dashboard-3d {
+            display: inline-block;
+            background: linear-gradient(180deg, #e0e0e0 0%, #bdbdbd 100%);
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 3px 8px #0002, 0 1.5px 0 #fff inset;
+            padding: 0.35em 1.1em;
+            font-size: 0.95em;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            margin-bottom: 0.5em;
+        }
+        .btn-volver-dashboard-3d:active {
+            box-shadow: 0 1px 2px #888 inset;
+            top: 1px;
+        }
+        .btn-volver-dashboard-3d i {
+            margin-right: 0.4em;
+        }
+        .btn-volver-dashboard-3d-link {
+            position: absolute;
+            top: 12px;
+            left: 18px;
+            font-size: 0.85em;
+            background: linear-gradient(180deg, #e0e0e0 0%, #bdbdbd 100%);
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px #0002, 0 1.5px 0 #fff inset;
+            padding: 0.18em 0.9em;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            z-index: 2;
+        }
+        .btn-volver-dashboard-3d-link:active {
+            box-shadow: 0 1px 2px #888 inset;
+            top: 13px;
+        }
+        .btn-volver-dashboard-3d-link i {
+            margin-right: 0.3em;
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/_header') %>
+    <div class="container">
+        <div class="card" style="max-width:500px;margin:2em auto;position:relative;">
+            <div class="card-header">
+                <h2><i class="fas fa-user"></i> Mi Perfil</h2>
+            </div>
+            <div class="card-body">
+                <div style="text-align:center;margin-bottom:1em;">
+                    <% if (usuario.foto_perfil) { %>
+                        <img src="/uploads/profiles/<%= usuario.foto_perfil %>" alt="Foto de perfil" style="width:100px;height:100px;border-radius:50%;object-fit:cover;">
+                    <% } else { %>
+                        <i class="fas fa-user-circle fa-5x text-muted"></i>
+                    <% } %>
+                </div>
+                <table class="table" style="width:100%;">
+                    <tr><th>Nombre:</th><td><%= usuario.nombre %> <%= usuario.apellido %></td></tr>
+                    <tr><th>Correo:</th><td><%= usuario.correo %></td></tr>
+                    <tr><th>Número de contacto:</th><td><%= usuario.numero_contacto || '-' %></td></tr>
+                    <tr><th>Tipo de documento:</th><td><%= usuario.tipo_documento %></td></tr>
+                    <tr><th>N° Documento:</th><td><%= usuario.numero_documento %></td></tr>
+                    <tr><th>Dirección:</th><td><%= usuario.direccion || '-' %></td></tr>
+                    <tr><th>Estado:</th><td><%= usuario.estado_nombre || usuario.estado_id %></td></tr>
+                    <tr><th>Ciudad:</th><td><%= usuario.ciudad_nombre || usuario.ciudad_id %></td></tr>
+                </table>
+            </div>
+        </div>
+        <div style="display:flex;justify-content:center;margin:1.5em 0 0.5em 0;">
+            <a href="/auth/dashboard" class="btn-volver-dashboard-3d-link">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+    </div>
+    <%- include('partials/_footer') %>
+</body>
+</html>

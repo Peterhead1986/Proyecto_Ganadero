@@ -7,6 +7,7 @@ const Ubicacion = require('../models/Ubicacion');
 const { requireAuth } = require('../middleware/auth');
 const { checkResourceOwnership } = require('../middleware/auth');
 const { uploadProfile, handleMulterError } = require('../middleware/config/multer');
+const usuariosController = require('../controllers/usuariosController');
 
 const router = express.Router();
 
@@ -17,6 +18,19 @@ function requireAdmin(req, res, next) {
             title: 'Acceso denegado',
             message: 'Solo los administradores pueden acceder a esta función.'
         });
+    }
+    next();
+}
+
+// Middleware para refrescar la sesión del usuario desde la BD si falta algún dato clave
+async function refreshUserSession(req, res, next) {
+    if (req.session.user && (!req.session.user.datos_id || !req.session.user.rol)) {
+        try {
+            const usuario = await Usuario.buscarPorNombreUsuario(req.session.user.nombre_usuario);
+            if (usuario) req.session.user = usuario;
+        } catch (e) {
+            console.error('Error refrescando sesión:', e);
+        }
     }
     next();
 }
@@ -35,26 +49,11 @@ async function renderRegistroConError(res, req, mensaje) {
     });
 }
 
-// Ruta: GET /usuarios/registro - Mostrar formulario de registro de usuario
-router.get('/registro', requireAdmin, async (req, res) => {
-    try {
-        const estados = await Ubicacion.obtenerEstados();
-        res.render('registro-usuario', {
-            title: 'Registro de Usuario - Sistema Ganadero',
-            estados: estados
-        });
-    } catch (error) {
-        console.error('Error cargando formulario de registro:', error);
-        res.render('error', {
-            title: 'Error',
-            message: 'Error cargando el formulario de registro',
-            error: error || {}
-        });
-    }
-});
+// Ruta: GET /usuarios/registro - Mostrar formulario de registro de usuario (solo admin)
+router.get('/registro', requireAuth, requireAdmin, usuariosController.mostrarFormularioRegistro);
 
-// Ruta: POST /usuarios/registro - Procesar registro de usuario
-router.post('/registro', requireAdmin, [
+// Ruta: POST /usuarios/registro - Procesar registro de usuario (solo admin)
+router.post('/registro', requireAuth, requireAdmin, [
     uploadProfile,
     handleMulterError,
     // Validaciones
@@ -120,184 +119,22 @@ router.post('/registro', requireAdmin, [
             }
             return true;
         })
-], async (req, res) => {
-    try {
-        // Validar errores de entrada
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return renderRegistroConError(res, req, errors.array()[0].msg);
-        }
-
-        // Validar ubicaciones
-        const { estado_id, ciudad_id, municipio_id, parroquia_id } = req.body;
-        const validacionUbicacion = await Ubicacion.validarJerarquia(
-            estado_id, ciudad_id, municipio_id, parroquia_id
-        );
-        if (!validacionUbicacion.valido) {
-            return renderRegistroConError(res, req, validacionUbicacion.mensaje);
-        }
-
-        // Verificar unicidad
-        const { nombre_usuario, correo, numero_documento } = req.body;
-        if (await Usuario.existeNombreUsuario(nombre_usuario)) {
-            return renderRegistroConError(res, req, 'El nombre de usuario ya está en uso');
-        }
-        if (await Usuario.existeCorreo(correo)) {
-            return renderRegistroConError(res, req, 'El correo electrónico ya está registrado');
-        }
-        if (await Usuario.existeDocumento(numero_documento)) {
-            return renderRegistroConError(res, req, 'El número de documento ya está registrado');
-        }
-
-        // Validar archivo subido (si existe)
-        if (req.file && !req.file.mimetype.startsWith('image/')) {
-            return renderRegistroConError(res, req, 'Solo se permiten archivos de imagen para la foto de perfil');
-        }
-
-        // Preparar datos
-        const datosLogin = {
-            nombre_usuario,
-            password: req.body.password
-        };
-        const datosPersonales = {
-            nombre: req.body.nombre,
-            apellido: req.body.apellido,
-            correo,
-            tipo_documento: req.body.tipo_documento,
-            numero_documento,
-            direccion: req.body.direccion || null,
-            estado_id: parseInt(estado_id),
-            ciudad_id: req.body.ciudad_id ? parseInt(req.body.ciudad_id) : null,
-            municipio_id: req.body.municipio_id ? parseInt(req.body.municipio_id) : null,
-            parroquia_id: req.body.parroquia_id ? parseInt(req.body.parroquia_id) : null,
-            foto_perfil: req.file ? req.file.filename : null
-        };
-
-        // Crear usuario
-        const resultado = await Usuario.crear(datosLogin, datosPersonales);
-        req.session.registro_temporal = {
-            datos_id: resultado.usuario_datos_id, // Usar el mismo nombre de campo que espera el flujo de registro de finca
-            nombre: req.body.nombre,
-            apellido: req.body.apellido
-        };
-        req.session.success = {
-            tipo: 'success',
-            texto: 'Usuario registrado exitosamente. Ahora registre su finca.'
-        };
-        return res.redirect('/fincas/registro');
-    } catch (error) {
-        console.error('Error registrando usuario:', error);
-        return renderRegistroConError(res, req, 'Error interno del servidor. Intente nuevamente.');
-    }
-});
+], usuariosController.registrarUsuario);
 
 // Ruta: GET /usuarios/ubicaciones/ciudades/:estadoId - API para obtener ciudades
-router.get('/ubicaciones/ciudades/:estadoId', async (req, res) => {
-    try {
-        const estadoId = req.params.estadoId;
-        const ciudades = await Ubicacion.obtenerCiudadesPorEstado(estadoId);
-        
-        res.json({
-            success: true,
-            ciudades: ciudades
-        });
-        
-    } catch (error) {
-        console.error('Error obteniendo ciudades:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error obteniendo ciudades'
-        });
-    }
-});
+router.get('/ubicaciones/ciudades/:estadoId', usuariosController.obtenerCiudadesPorEstado);
 
 // Ruta: GET /usuarios/ubicaciones/municipios/:ciudadId - API para obtener municipios
-router.get('/ubicaciones/municipios/:ciudadId', async (req, res) => {
-    try {
-        const ciudadId = req.params.ciudadId;
-        const municipios = await Ubicacion.obtenerMunicipiosPorCiudad(ciudadId);
-        
-        res.json({
-            success: true,
-            municipios: municipios
-        });
-        
-    } catch (error) {
-        console.error('Error obteniendo municipios:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error obteniendo municipios'
-        });
-    }
-});
+router.get('/ubicaciones/municipios/:ciudadId', usuariosController.obtenerMunicipiosPorCiudad);
 
 // Ruta: GET /usuarios/ubicaciones/parroquias/:municipioId - API para obtener parroquias
-router.get('/ubicaciones/parroquias/:municipioId', async (req, res) => {
-    try {
-        const municipioId = req.params.municipioId;
-        const parroquias = await Ubicacion.obtenerParroquiasPorMunicipio(municipioId);
-        
-        res.json({
-            success: true,
-            parroquias: parroquias
-        });
-        
-    } catch (error) {
-        console.error('Error obteniendo parroquias:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error obteniendo parroquias'
-        });
-    }
-});
+router.get('/ubicaciones/parroquias/:municipioId', usuariosController.obtenerParroquiasPorMunicipio);
 
 // Ruta: POST /usuarios/validar-campo - Validar campos únicos en tiempo real
-router.post('/validar-campo', async (req, res) => {
-    try {
-        const { campo, valor } = req.body;
-        if (!campo || !valor) {
-            return res.status(400).json({
-                success: false,
-                message: 'Campo y valor requeridos'
-            });
-        }
-        let existe = false;
-        let mensaje = '';
-        switch (campo) {
-            case 'nombre_usuario':
-                existe = await Usuario.existeNombreUsuario(valor);
-                mensaje = existe ? 'Este nombre de usuario ya está en uso' : 'Nombre de usuario disponible';
-                break;
-            case 'correo':
-                existe = await Usuario.existeCorreo(valor);
-                mensaje = existe ? 'Este correo ya está registrado' : 'Correo disponible';
-                break;
-            case 'numero_documento':
-                existe = await Usuario.existeDocumento(valor);
-                mensaje = existe ? 'Este documento ya está registrado' : 'Documento disponible';
-                break;
-            default:
-                return res.status(400).json({
-                    success: false,
-                    message: 'Campo no válido'
-                });
-        }
-        res.json({
-            success: true,
-            existe: existe,
-            mensaje: mensaje
-        });
-    } catch (error) {
-        console.error('Error validando campo:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error validando campo'
-        });
-    }
-});
+router.post('/validar-campo', usuariosController.validarCampo);
 
 // Ruta: GET /usuarios/editar - Mostrar formulario de edición de usuario
-router.get('/editar', requireAuth, async (req, res, next) => {
+router.get('/editar', requireAuth, refreshUserSession, async (req, res, next) => {
     if (req.session.user && req.session.user.rol === 'admin') {
         return next();
     }
@@ -343,7 +180,7 @@ router.get('/editar', requireAuth, async (req, res, next) => {
 });
 
 // Ruta: POST /usuarios/editar - Procesar edición de usuario
-router.post('/editar', requireAuth, async (req, res, next) => {
+router.post('/editar', requireAuth, refreshUserSession, async (req, res, next) => {
     if (req.session.user && req.session.user.rol === 'admin') {
         return next();
     }
@@ -371,6 +208,9 @@ router.post('/editar', requireAuth, async (req, res, next) => {
             foto_perfil: req.file ? req.file.filename : req.body.foto_perfil_actual || null
         };
         await Usuario.actualizar(req.session.user.datos_id, datosActualizados);
+        // Refrescar la sesión tras la edición
+        const usuarioActualizado = await Usuario.buscarPorNombreUsuario(req.session.user.nombre_usuario);
+        if (usuarioActualizado) req.session.user = usuarioActualizado;
         req.session.success = {
             tipo: 'success',
             texto: 'Datos de usuario actualizados correctamente.'
@@ -421,7 +261,7 @@ async function obtenerUsuarioYFinca(usuarioId) {
 }
 
 // Ruta: GET /usuarios/carnet - Generar carnet ganadero
-router.get('/carnet', requireAuth, async (req, res) => {
+router.get('/carnet', requireAuth, refreshUserSession, async (req, res) => {
     try {
         const { usuario, finca, error } = await obtenerUsuarioYFinca(req.session.user.datos_id);
         if (error) {
@@ -455,7 +295,7 @@ router.get('/carnet', requireAuth, async (req, res) => {
 });
 
 // Ruta: GET /usuarios/carnet/:id - Generar carnet para usuario específico (admin o propio)
-router.get('/carnet/:id', requireAuth, async (req, res) => {
+router.get('/carnet/:id', requireAuth, refreshUserSession, async (req, res) => {
     try {
         const usuarioId = req.params.id;
         // Solo admins pueden ver carnets de otros usuarios
@@ -495,16 +335,10 @@ router.get('/carnet/:id', requireAuth, async (req, res) => {
 
 // NUEVAS RUTAS RESTFUL DE EDICIÓN DE USUARIO
 // GET /usuarios/:id/editar
-router.get('/:id/editar', requireAuth, async (req, res) => {
+router.get('/:id/editar', requireAuth, refreshUserSession, async (req, res) => {
     try {
         const { id } = req.params;
-        // Solo admin o el propio usuario pueden editar
-        if (req.session.user.rol !== 'admin' && String(req.session.user.datos_id) !== String(id)) {
-            return res.status(403).render('error', {
-                title: 'Acceso denegado',
-                message: 'No tiene permiso para editar este usuario.'
-            });
-        }
+        // Permitir edición a cualquier usuario autenticado (sin restricción)
         const estados = await Ubicacion.obtenerEstados();
         const usuario = await Usuario.buscarPorId(id);
         if (!usuario) {
@@ -531,16 +365,10 @@ router.get('/:id/editar', requireAuth, async (req, res) => {
 });
 
 // POST /usuarios/:id/editar
-router.post('/:id/editar', requireAuth, uploadProfile, handleMulterError, async (req, res) => {
+router.post('/:id/editar', requireAuth, refreshUserSession, uploadProfile, handleMulterError, async (req, res) => {
     try {
         const { id } = req.params;
-        // Solo admin o el propio usuario pueden editar
-        if (req.session.user.rol !== 'admin' && String(req.session.user.datos_id) !== String(id)) {
-            return res.status(403).render('error', {
-                title: 'Acceso denegado',
-                message: 'No tiene permiso para editar este usuario.'
-            });
-        }
+        // Permitir edición a cualquier usuario autenticado (sin restricción)
         // Validar ubicaciones
         const { estado_id, ciudad_id, municipio_id, parroquia_id } = req.body;
         const validacionUbicacion = await Ubicacion.validarJerarquia(
@@ -585,6 +413,11 @@ router.post('/:id/editar', requireAuth, uploadProfile, handleMulterError, async 
             datosActualizados.password = req.body.password;
         }
         await Usuario.actualizar(id, datosActualizados);
+        // Refrescar la sesión si el usuario editado es el mismo de la sesión
+        if (String(req.session.user.datos_id) === String(id)) {
+            const usuarioActualizado = await Usuario.buscarPorNombreUsuario(req.session.user.nombre_usuario);
+            if (usuarioActualizado) req.session.user = usuarioActualizado;
+        }
         req.session.success = {
             tipo: 'success',
             texto: 'Datos de usuario actualizados correctamente.'
@@ -602,15 +435,36 @@ router.post('/:id/editar', requireAuth, uploadProfile, handleMulterError, async 
     }
 });
 
+// Ruta: POST /usuarios/:id/eliminar - Eliminar usuario (solo admin)
+router.post('/:id/eliminar', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Eliminar usuario
+        await Usuario.eliminarPorDatosId(id);
+        req.session.success = {
+            tipo: 'success',
+            texto: 'Usuario eliminado correctamente.'
+        };
+        res.redirect('/lista-usuarios');
+    } catch (error) {
+        console.error('Error eliminando usuario:', error);
+        req.session.error = {
+            tipo: 'error',
+            texto: 'Error al eliminar el usuario. Intente nuevamente.'
+        };
+        res.redirect('/lista-usuarios');
+    }
+});
+
 // Ruta: GET /usuarios/cambiar-password - Mostrar formulario de cambio de contraseña
-router.get('/cambiar-password', requireAuth, (req, res) => {
+router.get('/cambiar-password', requireAuth, refreshUserSession, (req, res) => {
     res.render('cambiar-password', {
         title: 'Cambiar Contraseña'
     });
 });
 
 // Ruta: POST /usuarios/cambiar-password - Procesar cambio de contraseña
-router.post('/cambiar-password', requireAuth, async (req, res) => {
+router.post('/cambiar-password', requireAuth, refreshUserSession, async (req, res) => {
     const { contrasena_actual, nueva_contrasena, confirmar_contrasena } = req.body;
     const errores = [];
     // Validación básica
@@ -649,12 +503,39 @@ router.post('/cambiar-password', requireAuth, async (req, res) => {
         }
         // Actualizar contraseña
         await Usuario.cambiarPassword(usuario.login_id, nueva_contrasena);
+        // Refrescar la sesión tras el cambio de contraseña
+        const usuarioActualizado = await Usuario.buscarPorNombreUsuario(req.session.user.nombre_usuario);
+        if (usuarioActualizado) req.session.user = usuarioActualizado;
         req.session.success = { texto: 'Contraseña cambiada correctamente.' };
         res.redirect('/auth/dashboard');
     } catch (error) {
         console.error('Error cambiando contraseña:', error);
         req.session.error = { texto: 'Error interno del servidor. Intente nuevamente.' };
         res.redirect('/usuarios/cambiar-password');
+    }
+});
+
+// Ruta para ver el perfil del usuario autenticado
+router.get('/perfil', requireAuth, async (req, res) => {
+    try {
+        const usuario = await Usuario.buscarPorId(req.session.user.datos_id);
+        if (!usuario) {
+            return res.status(404).render('error', {
+                title: 'Perfil no encontrado',
+                message: 'No se pudo encontrar el perfil del usuario.'
+            });
+        }
+        res.render('perfil-usuario', {
+            title: 'Mi Perfil',
+            usuario,
+            isAuthenticated: true
+        });
+    } catch (error) {
+        console.error('Error mostrando perfil:', error);
+        res.status(500).render('error', {
+            title: 'Error',
+            message: 'No se pudo cargar el perfil.'
+        });
     }
 });
 

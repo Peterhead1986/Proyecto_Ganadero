@@ -32,18 +32,6 @@
                         <option value="<%= c.id %>" <%= ciudad_id == c.id ? 'selected' : '' %>><%= c.nombre %></option>
                     <% }) %>
                 </select>
-                <select name="municipio_id" class="form-control" style="width:150px;">
-                    <option value="">Municipio</option>
-                    <% municipios.forEach(m => { %>
-                        <option value="<%= m.id %>" <%= municipio_id == m.id ? 'selected' : '' %>><%= m.nombre %></option>
-                    <% }) %>
-                </select>
-                <select name="parroquia_id" class="form-control" style="width:150px;">
-                    <option value="">Parroquia</option>
-                    <% parroquias.forEach(p => { %>
-                        <option value="<%= p.id %>" <%= parroquia_id == p.id ? 'selected' : '' %>><%= p.nombre %></option>
-                    <% }) %>
-                </select>
                 <button type="submit" class="sidebar-btn" style="padding:0.25em 0.7em;"><i class="fas fa-search"></i> Buscar</button>
             </form>
             <% if (flash && flash.success) { %>
@@ -56,81 +44,149 @@
                 <i class="fas fa-exclamation-triangle"></i> <%= flash.error.texto || flash.error %>
               </div>
             <% } %>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Foto</th>
-                        <th>ID</th>
-                        <th>Nombre de la Finca</th>
-                        <th>Dirección</th>
-                        <th>Latitud</th>
-                        <th>Longitud</th>
-                        <th>Estado</th>
-                        <th>Ciudad</th>
-                        <th>Municipio</th>
-                        <th>Parroquia</th>
-                        <th>Usuario</th>
-                        <th>Logo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (Array.isArray(fincas) && fincas.length > 0) { %>
-                        <% fincas.forEach(function(finca) { %>
-                            <tr>
-                                <td>
-                                    <% if (finca.foto_perfil) { %>
-                                        <img src="/uploads/profiles/<%= finca.foto_perfil %>" alt="Foto perfil" style="max-width:50px;max-height:50px;border-radius:50%;object-fit:cover;">
-                                    <% } else { %>
-                                        <span title="Sin foto"><i class="fas fa-user-circle fa-2x text-muted"></i></span>
-                                    <% } %>
-                                </td>
-                                <td><%= finca.id %></td>
-                                <td><%= finca.nombre_finca %></td>
-                                <td><%= finca.direccion_finca %></td>
-                                <td><%= finca.latitud %></td>
-                                <td><%= finca.longitud %></td>
-                                <td><%= finca.estado_nombre %></td>
-                                <td><%= finca.ciudad_nombre %></td>
-                                <td><%= finca.municipio_nombre %></td>
-                                <td><%= finca.parroquia_nombre %></td>
-                                <td>
-                                    <strong><%= finca.usuario_nombre %></strong><br>
-                                    <span><%= finca.usuario_apellido %></span><br>
-                                    <small class="text-muted">C.I.: <%= finca.usuario_cedula %></small>
-                                </td>
-                                <td>
-                                    <% if (finca.logo_finca) { %>
-                                        <img src="/uploads/logos/<%= finca.logo_finca %>" alt="Logo" style="max-width:60px;max-height:60px;">
-                                    <% } else { %>
-                                        <span class="text-muted">Sin logo</span>
-                                    <% } %>
-                                </td>
-                                <td>
-                                    <% if (usuario && usuario.rol === 'admin') { %>
-                                        <a href="/fincas/<%= finca.id %>/editar" class="btn-editar-finca-3d"><i class="fas fa-edit"></i> Editar</a>
-                                        <button type="button" class="btn-eliminar-finca-3d" onclick="eliminarFinca('<%= finca.id %>', this)"><i class="fas fa-trash"></i> Eliminar</button>
-                                    <% } %>
-                                </td>
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="13">No hay fincas registradas.</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
-            <div style="margin-top:1em;text-align:center;">
-                <% for(let i=1; i<=totalPaginas; i++) { %>
-                    <a href="/listado-fincas?pagina=<%= i %>&filtro=<%= filtro %>&estado_id=<%= estado_id %>&ciudad_id=<%= ciudad_id %>&municipio_id=<%= municipio_id %>&parroquia_id=<%= parroquia_id %>"
-                       class="sidebar-btn<%= (i==pagina ? ' active' : '') %>"><%= i %></a>
-                <% } %>
-            </div>
-            <% if (usuario && usuario.rol === 'admin') { %>
-            <!-- Botón 'Registrar Nueva Finca' eliminado temporalmente -->
+            <% if (isAuthenticated && usuario && usuario.rol === 'admin') { %>
+              <!-- Mostrar tabla y acciones completas de fincas para admin -->
+              <table class="table table-striped">
+                  <thead>
+                      <tr>
+                          <th>Foto</th>
+                          <th>ID</th>
+                          <th>Nombre de la Finca</th>
+                          <th>Dirección</th>
+                          <th>Latitud</th>
+                          <th>Longitud</th>
+                          <th>Estado</th>
+                          <th>Ciudad</th>
+                          <th>Usuario</th>
+                          <th>Hierro</th>
+                          <th>Acciones</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <% if (Array.isArray(fincas) && fincas.length > 0) { %>
+                          <% fincas.forEach(function(finca) { %>
+                              <tr>
+                                  <td>
+                                      <% if (finca.usuario_foto_perfil) { %>
+                                          <img src="/uploads/profiles/<%= finca.usuario_foto_perfil %>" alt="Foto usuario" style="max-width:50px;max-height:50px;border-radius:50%;object-fit:cover;">
+                                      <% } else if (finca.foto_perfil) { %>
+                                          <img src="/uploads/profiles/<%= finca.foto_perfil %>" alt="Foto perfil" style="max-width:50px;max-height:50px;border-radius:50%;object-fit:cover;">
+                                      <% } else { %>
+                                          <span title="Sin foto"><i class="fas fa-user-circle fa-2x text-muted"></i></span>
+                                      <% } %>
+                                  </td>
+                                  <td><%= finca.id %></td>
+                                  <td><%= finca.nombre_finca %></td>
+                                  <td><%= finca.direccion_finca %></td>
+                                  <td><%= finca.latitud %></td>
+                                  <td><%= finca.longitud %></td>
+                                  <td><%= finca.estado_nombre %></td>
+                                  <td><%= finca.ciudad_nombre %></td>
+                                  <td>
+                                      <strong><%= finca.usuario_nombre %></strong><br>
+                                      <span><%= finca.usuario_apellido %></span><br>
+                                      <small class="text-muted">C.I.: <%= finca.usuario_cedula %></small>
+                                  </td>
+                                  <td>
+                                      <% if (finca.hierro_finca) { %>
+                                          <img src="/uploads/logos/<%= finca.hierro_finca %>" alt="Hierro" style="max-width:60px;max-height:60px;">
+                                      <% } else { %>
+                                          <span class="text-muted">Sin hierro</span>
+                                      <% } %>
+                                  </td>
+                                  <td>
+                                      <a href="/fincas/<%= finca.id %>/editar" class="btn-editar-finca-3d"><i class="fas fa-edit"></i> Editar</a>
+                                      <button type="button" class="btn-eliminar-finca-3d" onclick="eliminarFinca('<%= finca.id %>', this)"><i class="fas fa-trash"></i> Eliminar</button>
+                                  </td>
+                              </tr>
+                          <% }) %>
+                      <% } else { %>
+                          <tr>
+                              <td colspan="10">No hay fincas registradas.</td>
+                          </tr>
+                      <% } %>
+                  </tbody>
+              </table>
+              <div style="margin-top:1em;text-align:center;">
+                  <% for(let i=1; i<=totalPaginas; i++) { %>
+                      <a href="/listado-fincas?pagina=<%= i %>&filtro=<%= filtro %>&estado_id=<%= estado_id %>&ciudad_id=<%= ciudad_id %>"
+                         class="sidebar-btn<%= (i==pagina ? ' active' : '') %>"><%= i %></a>
+                  <% } %>
+              </div>
+              <a href="/auth/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
+            <% } else if (isAuthenticated && usuario && usuario.rol === 'usuario') { %>
+              <!-- Tabla informativa y botones de gestión deshabilitados para usuario normal -->
+              <table class="table table-striped">
+                  <thead>
+                      <tr>
+                          <th>Foto</th>
+                          <th>ID</th>
+                          <th>Nombre de la Finca</th>
+                          <th>Dirección</th>
+                          <th>Latitud</th>
+                          <th>Longitud</th>
+                          <th>Estado</th>
+                          <th>Ciudad</th>
+                          <th>Usuario</th>
+                          <th>Hierro</th>
+                          <th>Acciones</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <% if (Array.isArray(fincas) && fincas.length > 0) { %>
+                          <% fincas.forEach(function(finca) { %>
+                              <tr>
+                                  <td>
+                                      <% if (finca.usuario_foto_perfil) { %>
+                                          <img src="/uploads/profiles/<%= finca.usuario_foto_perfil %>" alt="Foto usuario" style="max-width:50px;max-height:50px;border-radius:50%;object-fit:cover;">
+                                      <% } else if (finca.foto_perfil) { %>
+                                          <img src="/uploads/profiles/<%= finca.foto_perfil %>" alt="Foto perfil" style="max-width:50px;max-height:50px;border-radius:50%;object-fit:cover;">
+                                      <% } else { %>
+                                          <span title="Sin foto"><i class="fas fa-user-circle fa-2x text-muted"></i></span>
+                                      <% } %>
+                                  </td>
+                                  <td><%= finca.id %></td>
+                                  <td><%= finca.nombre_finca %></td>
+                                  <td><%= finca.direccion_finca %></td>
+                                  <td><%= finca.latitud %></td>
+                                  <td><%= finca.longitud %></td>
+                                  <td><%= finca.estado_nombre %></td>
+                                  <td><%= finca.ciudad_nombre %></td>
+                                  <td>
+                                      <strong><%= finca.usuario_nombre %></strong><br>
+                                      <span><%= finca.usuario_apellido %></span><br>
+                                      <small class="text-muted">C.I.: <%= finca.usuario_cedula %></small>
+                                  </td>
+                                  <td>
+                                      <% if (finca.hierro_finca) { %>
+                                          <img src="/uploads/logos/<%= finca.hierro_finca %>" alt="Hierro" style="max-width:60px;max-height:60px;">
+                                      <% } else { %>
+                                          <span class="text-muted">Sin hierro</span>
+                                      <% } %>
+                                  </td>
+                                  <td>
+                                      <button class="btn-editar-finca-3d" style="opacity:0.5;cursor:not-allowed;" disabled><i class="fas fa-edit"></i> Editar</button>
+                                      <button class="btn-eliminar-finca-3d" style="opacity:0.5;cursor:not-allowed;" disabled><i class="fas fa-trash"></i> Eliminar</button>
+                                  </td>
+                              </tr>
+                          <% }) %>
+                      <% } else { %>
+                          <tr>
+                              <td colspan="10">No hay fincas registradas.</td>
+                          </tr>
+                      <% } %>
+                  </tbody>
+              </table>
+              <div style="margin-top:1em;text-align:center;">
+                  <% for(let i=1; i<=totalPaginas; i++) { %>
+                      <a href="/listado-fincas?pagina=<%= i %>&filtro=<%= filtro %>&estado_id=<%= estado_id %>&ciudad_id=<%= ciudad_id %>"
+                         class="sidebar-btn<%= (i==pagina ? ' active' : '') %>" tabindex="-1"><%= i %></a>
+                  <% } %>
+              </div>
+              <a href="/auth/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
+            <% } else { %>
+              <div class="alert alert-error">No tienes permisos para ver esta sección.</div>
             <% } %>
-            <a href="/auth/dashboard" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
         </div>
       </main>
     </div>
@@ -139,57 +195,22 @@
     // Recarga dinámica de selects dependientes vía AJAX y conserva selección previa
     const estadoSel = document.querySelector('select[name=estado_id]');
     const ciudadSel = document.querySelector('select[name=ciudad_id]');
-    const municipioSel = document.querySelector('select[name=municipio_id]');
-    const parroquiaSel = document.querySelector('select[name=parroquia_id]');
     const ciudadIdPrev = '<%= ciudad_id %>';
-    const municipioIdPrev = '<%= municipio_id %>';
-    const parroquiaIdPrev = '<%= parroquia_id %>';
 
     async function cargarCiudades(estadoId, selectedId) {
       ciudadSel.innerHTML = '<option value="">Cargando...</option>';
-      municipioSel.innerHTML = '<option value="">Municipio</option>';
-      parroquiaSel.innerHTML = '<option value="">Parroquia</option>';
       if (!estadoId) { ciudadSel.innerHTML = '<option value="">Ciudad</option>'; return; }
       const res = await fetch(`/usuarios/ubicaciones/ciudades/${estadoId}`);
       const data = await res.json();
       ciudadSel.innerHTML = '<option value="">Ciudad</option>' + (data.ciudades||[]).map(c => `<option value="${c.id}"${selectedId==c.id? ' selected' : ''}>${c.nombre}</option>`).join('');
-      if(selectedId) cargarMunicipios(selectedId, municipioIdPrev);
-    }
-    async function cargarMunicipios(ciudadId, selectedId) {
-      municipioSel.innerHTML = '<option value="">Cargando...</option>';
-      parroquiaSel.innerHTML = '<option value="">Parroquia</option>';
-      if (!ciudadId) { municipioSel.innerHTML = '<option value="">Municipio</option>'; return; }
-      const res = await fetch(`/usuarios/ubicaciones/municipios/${ciudadId}`);
-      const data = await res.json();
-      municipioSel.innerHTML = '<option value="">Municipio</option>' + (data.municipios||[]).map(m => `<option value="${m.id}"${selectedId==m.id? ' selected' : ''}>${m.nombre}</option>`).join('');
-      if(selectedId) cargarParroquias(selectedId, parroquiaIdPrev);
-    }
-    async function cargarParroquias(municipioId, selectedId) {
-      parroquiaSel.innerHTML = '<option value="">Cargando...</option>';
-      if (!municipioId) { parroquiaSel.innerHTML = '<option value="">Parroquia</option>'; return; }
-      const res = await fetch(`/usuarios/ubicaciones/parroquias/${municipioId}`);
-      const data = await res.json();
-      parroquiaSel.innerHTML = '<option value="">Parroquia</option>' + (data.parroquias||[]).map(p => `<option value="${p.id}"${selectedId==p.id? ' selected' : ''}>${p.nombre}</option>`).join('');
     }
     if(estadoSel) {
       estadoSel.addEventListener('change', function() {
         cargarCiudades(this.value, '');
       });
     }
-    if(ciudadSel) {
-      ciudadSel.addEventListener('change', function() {
-        cargarMunicipios(this.value, '');
-      });
-    }
-    if(municipioSel) {
-      municipioSel.addEventListener('change', function() {
-        cargarParroquias(this.value, '');
-      });
-    }
     // Precarga selects dependientes si hay selección previa
     if(estadoSel && estadoSel.value) cargarCiudades(estadoSel.value, ciudadIdPrev);
-    if(ciudadSel && ciudadSel.value) cargarMunicipios(ciudadSel.value, municipioIdPrev);
-    if(municipioSel && municipioSel.value) cargarParroquias(municipioSel.value, parroquiaIdPrev);
     // Eliminar finca con fetch (AJAX)
     function eliminarFinca(id, btn) {
       if (confirm('¿Seguro que deseas eliminar esta finca?')) {

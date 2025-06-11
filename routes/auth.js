@@ -4,72 +4,16 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const { requireGuest, requireAuth } = require('../middleware/auth');
 const Usuario = require('../models/Usuario');
+const authController = require('../controllers/authController');
 
 // Ruta: GET /auth/login - Mostrar formulario de login
-router.get('/login', requireGuest, (req, res) => {
-    res.render('login', {
-        title: 'Iniciar Sesión',
-    });
-});
+router.get('/login', requireGuest, authController.mostrarLogin);
 
 // Ruta: POST /auth/login - Procesar login
 router.post('/login', requireGuest, [
     body('nombre_usuario').notEmpty().withMessage('El usuario es requerido'),
     body('contrasena').notEmpty().withMessage('La contraseña es requerida')
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.render('login', {
-            title: 'Iniciar Sesión',
-            error: { texto: errors.array()[0].msg },
-            formData: req.body
-        });
-    }
-    // Permitir ambos nombres de campo para compatibilidad
-    const { nombre_usuario, contrasena, password } = req.body;
-    const passwordToCheck = contrasena || password;
-    try {
-        const usuario = await Usuario.buscarPorNombreUsuario(nombre_usuario);
-        if (!usuario) {
-            return res.render('login', {
-                title: 'Iniciar Sesión',
-                error: { texto: 'Usuario o contraseña incorrectos' },
-                formData: req.body
-            });
-        }
-        const passwordOk = await Usuario.verificarPassword(passwordToCheck, usuario.password_hash);
-        if (!passwordOk) {
-            return res.render('login', {
-                title: 'Iniciar Sesión',
-                error: { texto: 'Usuario o contraseña incorrectos' },
-                formData: req.body
-            });
-        }
-        // Guardar datos mínimos en sesión
-        req.session.user = {
-            login_id: usuario.login_id,
-            datos_id: usuario.datos_id,
-            nombre_usuario: usuario.nombre_usuario,
-            nombre: usuario.nombre,
-            apellido: usuario.apellido,
-            correo: usuario.correo,
-            tipo_documento: usuario.tipo_documento,
-            numero_documento: usuario.numero_documento,
-            foto_perfil: usuario.foto_perfil,
-            estado_nombre: usuario.estado_nombre,
-            rol: usuario.rol // <--- Agregado
-        };
-        // Redirigir al dashboard
-        res.redirect('/auth/dashboard');
-    } catch (error) {
-        console.error('Error en login:', error);
-        res.render('login', {
-            title: 'Iniciar Sesión',
-            error: { texto: 'Error interno del servidor' },
-            formData: req.body
-        });
-    }
-});
+], authController.procesarLogin);
 
 // Ruta: POST /auth/registrar - Registro rápido desde login
 router.post('/registrar', [

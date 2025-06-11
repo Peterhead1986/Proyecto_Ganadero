@@ -7,6 +7,7 @@ const Ubicacion = require('../models/Ubicacion');
 const Usuario = require('../models/Usuario');
 const { requireAuth, checkResourceOwnership } = require('../middleware/auth');
 const { uploadLogo, handleMulterError } = require('../middleware/config/multer');
+const fincasController = require('../controllers/fincasController');
 
 const router = express.Router();
 
@@ -21,84 +22,9 @@ function requireAdmin(req, res, next) {
     next();
 }
 
-// Ruta: GET /fincas/registro - Mostrar formulario de registro de finca (admin puede pasar usuario_id)
-router.get('/registro', requireAuth, async (req, res, next) => {
-    // Solo admins pueden registrar fincas para otros usuarios
-    if (req.query.usuario_id && (!req.session.user || req.session.user.rol !== 'admin')) {
-        return res.status(403).render('error', {
-            title: 'Acceso denegado',
-            message: 'Solo los administradores pueden registrar fincas para otros usuarios.'
-        });
-    }
-    next();
-}, async (req, res) => {
-    try {
-        const estados = await Ubicacion.obtenerEstados();
-        let usuario = null;
-        let usuario_id = req.query.usuario_id;
-        // LOG de depuración para ver qué llega desde la lista de usuarios
-        console.log('[DEBUG] GET /fincas/registro usuario_id recibido:', usuario_id);
-        if (usuario_id) {
-            usuario_id = parseInt(usuario_id);
-            console.log('[DEBUG] GET /fincas/registro usuario_id parseado:', usuario_id);
-            if (isNaN(usuario_id) || usuario_id < 1) {
-                return res.status(400).render('error', {
-                    title: 'Error',
-                    message: 'El parámetro usuario_id es inválido.'
-                });
-            }
-            // Solo admins pueden registrar finca para otro usuario
-            if (!req.session.user || req.session.user.rol !== 'admin') {
-                return res.status(403).render('error', {
-                    title: 'Acceso denegado',
-                    message: 'Solo los administradores pueden registrar fincas para otros usuarios.'
-                });
-            }
-            usuario = await Usuario.buscarPorId(usuario_id);
-            console.log('[DEBUG] GET /fincas/registro usuario encontrado:', usuario);
-            if (!usuario) {
-                return res.status(404).render('error', {
-                    title: 'Usuario no encontrado',
-                    message: 'El usuario especificado no existe.'
-                });
-            }
-        } else {
-            usuario = req.session.registro_temporal || req.session.user;
-            usuario_id = usuario ? usuario.datos_id : null;
-        }
-        if (!usuario_id || isNaN(usuario_id) || usuario_id < 1) {
-            return res.status(400).render('error', {
-                title: 'Error',
-                message: 'No se pudo determinar el usuario para la finca (usuario_id inválido).'
-            });
-        }
-        res.render('registro-finca', {
-            title: 'Registro de Finca - Sistema Ganadero',
-            estados: estados,
-            usuario: usuario,
-            usuario_id: usuario_id
-        });
-    } catch (error) {
-        console.error('Error cargando formulario de registro de finca:', error);
-        res.render('error', {
-            title: 'Error',
-            message: 'Error cargando el formulario de registro de finca',
-            error: error || {}
-        });
-    }
-});
-
-// Ruta: POST /fincas/registro - Procesar registro de finca (admin puede asignar usuario)
-router.post('/registro', requireAuth, async (req, res, next) => {
-    // Solo admins pueden crear fincas para otros usuarios
-    if (req.body.usuario_id && (!req.session.user || req.session.user.rol !== 'admin')) {
-        return res.status(403).render('error', {
-            title: 'Acceso denegado',
-            message: 'Solo los administradores pueden registrar fincas para otros usuarios.'
-        });
-    }
-    next();
-}, [
+// Rutas protegidas SOLO para admin
+router.get('/registro', requireAuth, requireAdmin, fincasController.mostrarFormularioRegistro);
+router.post('/registro', requireAuth, requireAdmin, [
     uploadLogo,
     handleMulterError,
     // Validaciones
@@ -127,154 +53,13 @@ router.post('/registro', requireAuth, async (req, res, next) => {
         .isInt({ min: 1 })
         .withMessage('Estado inválido'),
     body('usuario_id')
-        .optional()
+        .notEmpty()
+        .withMessage('Debe seleccionar un usuario válido')
         .isInt({ min: 1 })
         .withMessage('Usuario inválido')
-], async (req, res) => {
-    try {
-        // Validar errores de entrada
-        const errors = validationResult(req);
-        const estados = await Ubicacion.obtenerEstados();
-        let usuario = null;
-        let usuarioId = null;
-        if (req.body.usuario_id) {
-            usuarioId = parseInt(req.body.usuario_id);
-            if (!req.session.user || req.session.user.rol !== 'admin') {
-                return res.status(403).render('error', {
-                    title: 'Acceso denegado',
-                    message: 'Solo los administradores pueden registrar fincas para otros usuarios.'
-                });
-            }
-            if (isNaN(usuarioId) || usuarioId < 1) {
-                return res.status(400).render('error', {
-                    title: 'Error',
-                    message: 'El usuario_id enviado es inválido.'
-                });
-            }
-            usuario = await Usuario.buscarPorId(usuarioId);
-            if (!usuario) {
-                return res.status(404).render('error', {
-                    title: 'Usuario no encontrado',
-                    message: 'El usuario especificado no existe.'
-                });
-            }
-        } else if (req.session.registro_temporal && req.session.registro_temporal.usuario_datos_id) {
-            usuario = req.session.registro_temporal;
-            usuarioId = parseInt(usuario.usuario_datos_id);
-        } else if (req.session.user && req.session.user.datos_id) {
-            usuario = req.session.user;
-            usuarioId = parseInt(usuario.datos_id);
-        } else {
-            console.error('No se pudo determinar el usuario para la finca. req.body.usuario_id:', req.body.usuario_id, 'req.session:', req.session);
-            return res.status(400).render('error', {
-                title: 'Error',
-                message: 'No se pudo determinar el usuario para la finca.'
-            });
-        }
-        if (!usuarioId || isNaN(usuarioId) || usuarioId < 1) {
-            console.error('usuarioId es null o inválido en registro de finca. req.body:', req.body, 'req.session:', req.session);
-            return res.status(400).render('error', {
-                title: 'Error',
-                message: 'No se pudo determinar el usuario para la finca (usuarioId inválido).'
-            });
-        }
-        if (!errors.isEmpty()) {
-            return res.render('registro-finca', {
-                title: 'Registro de Finca - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: errors.array()[0].msg
-                },
-                estados: estados,
-                formData: req.body,
-                usuario: usuario,
-                usuario_id: usuarioId
-            });
-        }
-        const {
-            nombre_finca, direccion_finca, latitud, longitud,
-            estado_id, ciudad_id, municipio_id, parroquia_id
-        } = req.body;
-        // Validar ubicaciones
-        const validacionUbicacion = await Ubicacion.validarJerarquia(
-            estado_id, ciudad_id, municipio_id, parroquia_id
-        );
+], fincasController.registrarFinca);
 
-        if (!validacionUbicacion.valido) {
-            return res.render('registro-finca', {
-                title: 'Registro de Finca - Sistema Ganadero',
-                error: {
-                    tipo: 'error',
-                    texto: validacionUbicacion.mensaje
-                },
-                estados: estados,
-                formData: req.body,
-                usuario: usuario,
-                usuario_id: usuarioId
-            });
-        }
-
-        // Preparar datos de la finca
-        const datosFinca = {
-            usuario_id: usuarioId,
-            nombre_finca,
-            direccion_finca,
-            latitud: latitud ? parseFloat(latitud) : null,
-            longitud: longitud ? parseFloat(longitud) : null,
-            estado_id: parseInt(estado_id),
-            ciudad_id: ciudad_id ? parseInt(ciudad_id) : null,
-            municipio_id: municipio_id ? parseInt(municipio_id) : null,
-            parroquia_id: parroquia_id ? parseInt(parroquia_id) : null,
-            logo_finca: req.file ? req.file.filename : null
-        };
-
-        // Crear finca
-        const fincaId = await Finca.crear(datosFinca);
-
-        console.log(`✅ Finca registrada: ${nombre_finca} (ID: ${fincaId})`);
-
-        // Si es un registro nuevo completo
-        if (req.session.registro_temporal) {
-            // Limpiar registro temporal
-            delete req.session.registro_temporal;
-            req.session.success = {
-                tipo: 'success',
-                texto: '¡Registro de finca exitoso! Ya puede iniciar sesión.'
-            };
-            return res.redirect('/auth/login');
-        } else if (req.session.user && req.session.user.rol === 'admin' && req.body.usuario_id) {
-            req.session.success = {
-                tipo: 'success',
-                texto: 'Finca registrada exitosamente para el usuario.'
-            };
-            return res.redirect('/lista-usuarios');
-        } else {
-            req.session.success = {
-                tipo: 'success',
-                texto: 'Finca registrada exitosamente.'
-            };
-            return res.redirect('/auth/dashboard');
-        }
-
-    } catch (error) {
-        console.error('Error registrando finca:', error);
-        
-        const estados = await Ubicacion.obtenerEstados();
-        res.render('registro-finca', {
-            title: 'Registro de Finca - Sistema Ganadero',
-            error: {
-                tipo: 'error',
-                texto: 'Error interno del servidor. Intente nuevamente.'
-            },
-            estados: estados,
-            formData: req.body,
-            usuario: null,
-            usuario_id: req.body.usuario_id || null
-        });
-    }
-});
-
-// Ruta: GET /fincas/mis-fincas - Ver fincas del usuario autenticado
+// Rutas accesibles para usuarios autenticados (visualización y registro personal)
 router.get('/mis-fincas', requireAuth, async (req, res) => {
     try {
         const usuarioId = req.session.user.datos_id;
@@ -324,7 +109,7 @@ router.get('/:id', requireAuth, checkResourceOwnership('finca'), async (req, res
     }
 });
 
-// Ruta: GET /fincas/:id/editar - Mostrar formulario de edición de finca
+// Rutas protegidas SOLO para admin
 router.get('/:id/editar', requireAuth, requireAdmin, async (req, res) => {
     try {
         const fincaId = parseInt(req.params.id);
@@ -342,18 +127,14 @@ router.get('/:id/editar', requireAuth, requireAdmin, async (req, res) => {
             });
         }
         const estados = await Ubicacion.obtenerEstados();
-        // Cargar ciudades, municipios y parroquias para selects
+        // Cargar ciudades para selects
         const ciudades = await Ubicacion.obtenerCiudadesPorEstado(finca.estado_id);
-        const municipios = await Ubicacion.obtenerMunicipiosPorEstado(finca.estado_id);
-        const parroquias = await Ubicacion.obtenerParroquiasPorMunicipio(finca.municipio_id);
         console.log('GET - Mensaje de éxito en sesión antes de render:', req.session.success);
         res.render('editar-finca', {
             title: 'Editar Finca',
             finca,
             estados,
             ciudades,
-            municipios,
-            parroquias,
             success: req.session.success,
             error: req.session.error
         });
@@ -369,8 +150,6 @@ router.get('/:id/editar', requireAuth, requireAdmin, async (req, res) => {
         });
     }
 });
-
-// Ruta: POST /fincas/:id/editar - Procesar edición de finca (optimizada y validada)
 router.post('/:id/editar', requireAuth, requireAdmin, uploadLogo, handleMulterError, async (req, res) => {
     try {
         const fincaId = parseInt(req.params.id);
@@ -399,7 +178,7 @@ router.post('/:id/editar', requireAuth, requireAdmin, uploadLogo, handleMulterEr
         }
         // Validar ubicaciones
         const validacionUbicacion = await Ubicacion.validarJerarquia(
-            req.body.estado_id, req.body.ciudad_id, req.body.municipio_id, req.body.parroquia_id
+            req.body.estado_id, req.body.ciudad_id
         );
         if (!validacionUbicacion.valido) {
             req.session.error = { texto: validacionUbicacion.mensaje };
@@ -413,9 +192,7 @@ router.post('/:id/editar', requireAuth, requireAdmin, uploadLogo, handleMulterEr
             longitud: req.body.longitud ? parseFloat(req.body.longitud) : null,
             estado_id: parseInt(req.body.estado_id),
             ciudad_id: req.body.ciudad_id ? parseInt(req.body.ciudad_id) : null,
-            municipio_id: req.body.municipio_id ? parseInt(req.body.municipio_id) : null,
-            parroquia_id: req.body.parroquia_id ? parseInt(req.body.parroquia_id) : null,
-            logo_finca: req.file ? req.file.filename : fincaActual.logo_finca
+            hierro_finca: req.file ? req.file.filename : fincaActual.hierro_finca
         };
         // Guardar en base de datos
         const actualizado = await Finca.actualizar(fincaId, datosFinca);
@@ -465,9 +242,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
         });
     }
 });
-
-// Ruta: POST /fincas/:id/eliminar - Eliminar finca (compatibilidad con formularios clásicos)
-router.post('/:id/eliminar', requireAuth, checkResourceOwnership('finca'), async (req, res) => {
+router.post('/:id/eliminar', requireAuth, requireAdmin, async (req, res) => {
     try {
         const fincaId = req.params.id;
         const eliminado = await Finca.eliminar(fincaId);
@@ -551,7 +326,7 @@ router.post('/nueva', [
 
         const {
             nombre_finca, direccion_finca, latitud, longitud,
-            estado_id, ciudad_id, municipio_id, parroquia_id
+            estado_id, ciudad_id
         } = req.body;
 
         const usuarioId = req.session.user.datos_id;
@@ -565,9 +340,7 @@ router.post('/nueva', [
             longitud: longitud ? parseFloat(longitud) : null,
             estado_id: parseInt(estado_id),
             ciudad_id: ciudad_id ? parseInt(ciudad_id) : null,
-            municipio_id: municipio_id ? parseInt(municipio_id) : null,
-            parroquia_id: parroquia_id ? parseInt(parroquia_id) : null,
-            logo_finca: req.file ? req.file.filename : null
+            hierro_finca: req.file ? req.file.filename : null
         };
 
         // Crear finca

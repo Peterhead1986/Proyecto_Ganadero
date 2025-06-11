@@ -14,6 +14,7 @@ const usuarioRoutes = require('./routes/usuarios');
 const fincaRoutes = require('./routes/fincas');
 const listadoFincasRoutes = require('./routes/listado_fincas');
 const listaUsuariosRoutes = require('./routes/lista-usuarios');
+const carnetRouter = require('./routes/carnet');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,6 +65,7 @@ app.use('/usuarios', usuarioRoutes);
 app.use('/fincas', fincaRoutes);
 app.use('/listado-fincas', listadoFincasRoutes);
 app.use('/lista-usuarios', listaUsuariosRoutes);
+app.use('/carnet', carnetRouter);
 
 // Ruta principal - Redirige al login
 app.get('/', (req, res) => {

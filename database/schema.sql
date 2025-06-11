@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS fincas_datos (
     ciudad_id INT,
     municipio_id INT,
     parroquia_id INT,
-    logo_finca VARCHAR(255) DEFAULT NULL,
+    hierro_finca VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (usuario_id) REFERENCES usuarios_datos(id) ON DELETE CASCADE,

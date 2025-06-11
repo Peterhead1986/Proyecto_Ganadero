@@ -29,6 +29,8 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "chai": "^5.2.0",
+    "mocha": "^11.6.0",
     "supertest": "^7.1.1"
   }
 }

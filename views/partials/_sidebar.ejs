@@ -1,14 +1,22 @@
 <aside class="sidebar-list sidebar-modern" tabindex="0" role="navigation" aria-label="Menú lateral">
   <nav>
     <ul>
-      <li><a href="/auth/dashboard" class="sidebar-btn sidebar-btn-home"><i class="fas fa-home"></i> Inicio</a></li>
-      <li><a href="/usuarios/registro" class="sidebar-btn"><i class="fas fa-user-plus"></i> Agregar Usuario</a></li>
-      <li><a href="/lista-usuarios" class="sidebar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
-      <li><a href="/lista-usuarios" class="sidebar-btn"><i class="fas fa-user-cog"></i> Editar Usuario</a></li>
-      <li><a href="/listado-fincas" class="sidebar-btn"><i class="fas fa-tractor"></i> Listado de Fincas</a></li>
-      <li><a href="/listado-fincas" class="sidebar-btn"><i class="fas fa-edit"></i> Editar Finca</a></li>
-      <li><a href="/usuarios/cambiar-password" class="sidebar-btn"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
-      <li><a href="/auth/logout" class="sidebar-btn sidebar-btn-logout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+      <% if (isAuthenticated && usuario && usuario.rol === 'admin') { %>
+        <li><a href="/auth/dashboard" class="sidebar-btn sidebar-btn-home"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="/usuarios/registro" class="sidebar-btn"><i class="fas fa-user-plus"></i> Agregar Usuario</a></li>
+        <li><a href="/lista-usuarios" class="sidebar-btn"><i class="fas fa-users"></i> Lista de usuarios</a></li>
+        <li><a href="/lista-usuarios" class="sidebar-btn"><i class="fas fa-user-cog"></i> Editar Usuario</a></li>
+        <li><a href="/listado-fincas" class="sidebar-btn"><i class="fas fa-tractor"></i> Listado de Fincas</a></li>
+        <li><a href="/listado-fincas" class="sidebar-btn"><i class="fas fa-edit"></i> Editar Finca</a></li>
+        <li><a href="/usuarios/cambiar-password" class="sidebar-btn"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+        <li><a href="/auth/logout" class="sidebar-btn sidebar-btn-logout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+      <% } %>
+      <% if (isAuthenticated && usuario && usuario.rol === 'usuario') { %>
+        <li><a href="/auth/dashboard" class="sidebar-btn sidebar-btn-home"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="/listado-fincas" class="sidebar-btn"><i class="fas fa-tractor"></i> Listado de Fincas</a></li>
+        <li><a href="/usuarios/cambiar-password" class="sidebar-btn"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+        <li><a href="/auth/logout" class="sidebar-btn sidebar-btn-logout"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+      <% } %>
     </ul>
   </nav>
 </aside>

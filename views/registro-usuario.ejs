@@ -56,7 +56,9 @@
                   <div class="alert alert-error"><%= flash.error.texto || flash.error %></div>
                 <% } %>
 
-                <form action="/usuarios/registro" method="POST" enctype="multipart/form-data" class="registro-form" id="registroForm">
+                <% if (isAuthenticated && usuario && usuario.rol === 'admin') { %>
+                  <!-- Formulario de registro de usuario solo visible para admin -->
+                  <form action="/usuarios/registro" method="POST" enctype="multipart/form-data" class="registro-form" id="registroForm">
                     <div class="card-body">
                         <div class="row">
                             <!-- Nombre y Apellido -->
@@ -113,6 +115,22 @@
                                 placeholder="ejemplo@correo.com"
                             >
                             <div class="validation-message" id="correo-validation"></div>
+                        </div>
+
+                        <!-- Número de contacto -->
+                        <div class="form-group">
+                            <label for="numero_contacto">
+                                <i class="fas fa-phone"></i>
+                                Número de contacto
+                            </label>
+                            <input 
+                                type="text" 
+                                id="numero_contacto" 
+                                name="numero_contacto" 
+                                class="form-control"
+                                value="<%= typeof formData !== 'undefined' ? formData.numero_contacto || '' : '' %>"
+                                placeholder="Ej: 0412-1234567"
+                            >
                         </div>
 
                         <div class="row">
@@ -204,32 +222,6 @@
                                         </label>
                                         <select id="ciudad_id" name="ciudad_id" class="form-control">
                                             <option value="">Seleccionar ciudad...</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="municipio_id">
-                                            <i class="fas fa-building"></i>
-                                            Municipio
-                                        </label>
-                                        <select id="municipio_id" name="municipio_id" class="form-control">
-                                            <option value="">Seleccionar municipio...</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="parroquia_id">
-                                            <i class="fas fa-church"></i>
-                                            Parroquia
-                                        </label>
-                                        <select id="parroquia_id" name="parroquia_id" class="form-control">
-                                            <option value="">Seleccionar parroquia...</option>
                                         </select>
                                     </div>
                                 </div>
@@ -345,6 +337,9 @@
                         </div>
                     </div>
                 </form>
+                <% } else { %>
+                  <div class="alert alert-error">No tienes permisos para registrar usuarios.</div>
+                <% } %>
             </div>
         </div>
     </div>

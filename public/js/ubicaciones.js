@@ -27,44 +27,23 @@ class UbicacionesManager {
                 this.onCiudadChange(e.target.value);
             });
         }
-
-        // Municipio selector
-        const municipioSelect = document.getElementById('municipio_id');
-        if (municipioSelect) {
-            municipioSelect.addEventListener('change', (e) => {
-                this.onMunicipioChange(e.target.value);
-            });
-        }
     }
 
     async loadInitialData() {
         // Si hay valores preseleccionados, cargar las dependencias
         const estadoId = document.getElementById('estado_id')?.value;
         const ciudadId = document.getElementById('ciudad_id')?.value;
-        const municipioId = document.getElementById('municipio_id')?.value;
 
         if (estadoId) {
             await this.loadCiudades(estadoId, ciudadId);
-        }
-
-        if (ciudadId) {
-            await this.loadMunicipios(ciudadId, municipioId);
-        }
-
-        if (municipioId) {
-            await this.loadParroquias(municipioId);
         }
     }
 
     async onEstadoChange(estadoId) {
         const ciudadSelect = document.getElementById('ciudad_id');
-        const municipioSelect = document.getElementById('municipio_id');
-        const parroquiaSelect = document.getElementById('parroquia_id');
 
         // Limpiar selectores dependientes
         this.clearSelect(ciudadSelect, 'Seleccionar ciudad...');
-        this.clearSelect(municipioSelect, 'Seleccionar municipio...');
-        this.clearSelect(parroquiaSelect, 'Seleccionar parroquia...');
 
         if (estadoId) {
             await this.loadCiudades(estadoId);
@@ -72,27 +51,7 @@ class UbicacionesManager {
     }
 
     async onCiudadChange(ciudadId) {
-        const municipioSelect = document.getElementById('municipio_id');
-        const parroquiaSelect = document.getElementById('parroquia_id');
-
-        // Limpiar selectores dependientes
-        this.clearSelect(municipioSelect, 'Seleccionar municipio...');
-        this.clearSelect(parroquiaSelect, 'Seleccionar parroquia...');
-
-        if (ciudadId) {
-            await this.loadMunicipios(ciudadId);
-        }
-    }
-
-    async onMunicipioChange(municipioId) {
-        const parroquiaSelect = document.getElementById('parroquia_id');
-
-        // Limpiar selector dependiente
-        this.clearSelect(parroquiaSelect, 'Seleccionar parroquia...');
-
-        if (municipioId) {
-            await this.loadParroquias(municipioId);
-        }
+        // Lógica para manejar el cambio en el selector de ciudad si es necesario
     }
 
     async loadCiudades(estadoId, selectedCiudadId = null) {
@@ -108,38 +67,6 @@ class UbicacionesManager {
         } catch (error) {
             console.error('Error cargando ciudades:', error);
             this.setErrorState(ciudadSelect, 'Error cargando ciudades');
-        }
-    }
-
-    async loadMunicipios(ciudadId, selectedMunicipioId = null) {
-        const municipioSelect = document.getElementById('municipio_id');
-        if (!municipioSelect) return;
-
-        try {
-            this.setLoadingState(municipioSelect, 'Cargando municipios...');
-            
-            const municipios = await this.fetchUbicaciones('municipios', ciudadId);
-            this.populateSelect(municipioSelect, municipios, 'Seleccionar municipio...', selectedMunicipioId);
-            
-        } catch (error) {
-            console.error('Error cargando municipios:', error);
-            this.setErrorState(municipioSelect, 'Error cargando municipios');
-        }
-    }
-
-    async loadParroquias(municipioId, selectedParroquiaId = null) {
-        const parroquiaSelect = document.getElementById('parroquia_id');
-        if (!parroquiaSelect) return;
-
-        try {
-            this.setLoadingState(parroquiaSelect, 'Cargando parroquias...');
-            
-            const parroquias = await this.fetchUbicaciones('parroquias', municipioId);
-            this.populateSelect(parroquiaSelect, parroquias, 'Seleccionar parroquia...', selectedParroquiaId);
-            
-        } catch (error) {
-            console.error('Error cargando parroquias:', error);
-            this.setErrorState(parroquiaSelect, 'Error cargando parroquias');
         }
     }
 
@@ -231,14 +158,10 @@ class UbicacionesManager {
     getLocationPath() {
         const estado = document.getElementById('estado_id')?.selectedOptions[0]?.text;
         const ciudad = document.getElementById('ciudad_id')?.selectedOptions[0]?.text;
-        const municipio = document.getElementById('municipio_id')?.selectedOptions[0]?.text;
-        const parroquia = document.getElementById('parroquia_id')?.selectedOptions[0]?.text;
 
         const parts = [];
         if (estado && estado !== 'Seleccionar estado...') parts.push(estado);
         if (ciudad && ciudad !== 'Seleccionar ciudad...') parts.push(ciudad);
-        if (municipio && municipio !== 'Seleccionar municipio...') parts.push(municipio);
-        if (parroquia && parroquia !== 'Seleccionar parroquia...') parts.push(parroquia);
 
         return parts.join(' > ');
     }
@@ -247,8 +170,6 @@ class UbicacionesManager {
     validateSelection() {
         const estado = document.getElementById('estado_id')?.value;
         const ciudad = document.getElementById('ciudad_id')?.value;
-        const municipio = document.getElementById('municipio_id')?.value;
-        const parroquia = document.getElementById('parroquia_id')?.value;
 
         const errors = [];
 
@@ -261,16 +182,6 @@ class UbicacionesManager {
             errors.push('No puede seleccionar ciudad sin estado');
         }
 
-        // Si hay municipio seleccionado, debe tener ciudad
-        if (municipio && !ciudad) {
-            errors.push('No puede seleccionar municipio sin ciudad');
-        }
-
-        // Si hay parroquia seleccionada, debe tener municipio
-        if (parroquia && !municipio) {
-            errors.push('No puede seleccionar parroquia sin municipio');
-        }
-
         return {
             valid: errors.length === 0,
             errors: errors
@@ -281,12 +192,10 @@ class UbicacionesManager {
     reset() {
         this.clearSelect(document.getElementById('estado_id'), 'Seleccionar estado...');
         this.clearSelect(document.getElementById('ciudad_id'), 'Seleccionar ciudad...');
-        this.clearSelect(document.getElementById('municipio_id'), 'Seleccionar municipio...');
-        this.clearSelect(document.getElementById('parroquia_id'), 'Seleccionar parroquia...');
     }
 
     // Método para precargar ubicaciones específicas
-    async preloadLocation(estadoId, ciudadId = null, municipioId = null, parroquiaId = null) {
+    async preloadLocation(estadoId, ciudadId = null) {
         try {
             // Seleccionar estado
             const estadoSelect = document.getElementById('estado_id');
@@ -301,26 +210,6 @@ class UbicacionesManager {
                 const ciudadSelect = document.getElementById('ciudad_id');
                 if (ciudadSelect) {
                     ciudadSelect.value = ciudadId;
-                    await this.loadMunicipios(ciudadId, municipioId);
-                }
-            }
-
-            // Seleccionar municipio si está disponible
-            if (municipioId) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                const municipioSelect = document.getElementById('municipio_id');
-                if (municipioSelect) {
-                    municipioSelect.value = municipioId;
-                    await this.loadParroquias(municipioId, parroquiaId);
-                }
-            }
-
-            // Seleccionar parroquia si está disponible
-            if (parroquiaId) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                const parroquiaSelect = document.getElementById('parroquia_id');
-                if (parroquiaSelect) {
-                    parroquiaSelect.value = parroquiaId;
                 }
             }
 
@@ -333,8 +222,6 @@ class UbicacionesManager {
     getSelectedLocationInfo() {
         const estadoSelect = document.getElementById('estado_id');
         const ciudadSelect = document.getElementById('ciudad_id');
-        const municipioSelect = document.getElementById('municipio_id');
-        const parroquiaSelect = document.getElementById('parroquia_id');
 
         return {
             estado: {
@@ -344,14 +231,6 @@ class UbicacionesManager {
             ciudad: {
                 id: ciudadSelect?.value || null,
                 nombre: ciudadSelect?.selectedOptions[0]?.text || null
-            },
-            municipio: {
-                id: municipioSelect?.value || null,
-                nombre: municipioSelect?.selectedOptions[0]?.text || null
-            },
-            parroquia: {
-                id: parroquiaSelect?.value || null,
-                nombre: parroquiaSelect?.selectedOptions[0]?.text || null
             }
         };
     }
@@ -382,9 +261,9 @@ window.UbicacionesUtils = {
         }
     },
     
-    preloadLocation: (estadoId, ciudadId, municipioId, parroquiaId) => {
+    preloadLocation: (estadoId, ciudadId) => {
         if (ubicacionesManager) {
-            return ubicacionesManager.preloadLocation(estadoId, ciudadId, municipioId, parroquiaId);
+            return ubicacionesManager.preloadLocation(estadoId, ciudadId);
         }
     }
 };
